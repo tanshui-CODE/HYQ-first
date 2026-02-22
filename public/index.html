@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>四川华玉车辆板簧有限公司 - 外贸客户管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .sidebar-item.active { background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal { backdrop-filter: blur(4px); }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div id="app">
+    <!-- 登录页面 -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800">
+      <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto flex items-center justify-center mb-4">
+            <i class="fas fa-industry text-white text-3xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-800">四川华玉车辆板簧有限公司</h1>
+          <p class="text-gray-500 mt-2">外贸客户管理系统</p>
+        </div>
+        <form onsubmit="handleLogin(event)">
+          <div class="mb-4">
+            <label class="block text-gray-700 mb-2">用户名</label>
+            <input type="text" id="loginUsername" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="请输入用户名">
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 mb-2">密码</label>
+            <input type="password" id="loginPassword" required class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="请输入密码">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+            <i class="fas fa-sign-in-alt mr-2"></i>登录
+          </button>
+        </form>
+        <p class="text-center text-gray-500 text-sm mt-4">默认账号: admin / admin123</p>
+      </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="mainApp" class="hidden">
+      <!-- 侧边栏 -->
+      <div class="fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-50">
+        <div class="p-6 border-b border-gray-700">
+          <h1 class="text-lg font-bold flex items-center">
+            <i class="fas fa-industry mr-2"></i>华玉板簧CRM
+          </h1>
+          <p class="text-gray-400 text-sm mt-1">外贸客户管理系统</p>
+        </div>
+        <nav class="p-4">
+          <div onclick="showPage('dashboard')" class="sidebar-item active flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-chart-line w-6"></i><span>数据看板</span>
+          </div>
+          <div onclick="showPage('customers')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-users w-6"></i><span>客户管理</span>
+          </div>
+          <div onclick="showPage('products')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-box w-6"></i><span>产品管理</span>
+          </div>
+          <div onclick="showPage('orders')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-shopping-cart w-6"></i><span>订单管理</span>
+          </div>
+          <div onclick="showPage('inquiries')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-envelope w-6"></i><span>询盘管理</span>
+          </div>
+        </nav>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-semibold" id="userName">管理员</p>
+              <p class="text-gray-400 text-sm">在线</p>
+            </div>
+            <button onclick="logout()" class="text-gray-400 hover:text-white transition">
+              <i class="fas fa-sign-out-alt text-xl"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主内容区 -->
+      <div class="ml-64 p-8">
+        <!-- 数据看板 -->
+        <div id="dashboardPage" class="page">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">数据看板</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 card-hover transition">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-gray-500">客户总数</p>
+                  <p class="text-3xl font-bold text-gray-800" id="statCustomers">0</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 card-hover transition">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-gray-500">订单总数</p>
+                  <p class="text-3xl font-bold text-gray-800" id="statOrders">0</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 card-hover transition">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-gray-500">待处理询盘</p>
+                  <p class="text-3xl font-bold text-gray-800" id="statInquiries">0</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-envelope text-yellow-600 text-xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl p-6 card-hover transition">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-gray-500">待处理订单</p>
+                  <p class="text-3xl font-bold text-gray-800" id="statPending">0</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-clock text-red-600 text-xl"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl p-6">
+              <h3 class="text-lg font-bold text-gray-800 mb-4">最近订单</h3>
+              <div id="recentOrders" class="space-y-3"></div>
+            </div>
+            <div class="bg-white rounded-xl p-6">
+              <h3 class="text-lg font-bold text-gray-800 mb-4">最近询盘</h3>
+              <div id="recentInquiries" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 客户管理 -->
+        <div id="customersPage" class="page hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">客户管理</h2>
+            <button onclick="showCustomerModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+              <i class="fas fa-plus mr-2"></i>添加客户
+            </button>
+          </div>
+          <div class="bg-white rounded-xl p-6">
+            <div class="flex gap-4 mb-4">
+              <input type="text" id="customerSearch" placeholder="搜索客户名称/公司/邮箱..." class="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" onkeyup="loadCustomers()">
+              <select id="customerStatus" class="px-4 py-2 border rounded-lg" onchange="loadCustomers()">
+                <option value="">全部状态</option>
+                <option value="active">活跃</option>
+                <option value="inactive">不活跃</option>
+                <option value="potential">潜在</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-gray-600">客户名称</th>
+                    <th class="px-4 py-3 text-left text-gray-600">公司</th>
+                    <th class="px-4 py-3 text-left text-gray-600">国家</th>
+                    <th class="px-4 py-3 text-left text-gray-600">邮箱</th>
+                    <th class="px-4 py-3 text-left text-gray-600">电话</th>
+                    <th class="px-4 py-3 text-left text-gray-600">状态</th>
+                    <th class="px-4 py-3 text-left text-gray-600">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="customerList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品管理 -->
+        <div id="productsPage" class="page hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">产品管理</h2>
+            <button onclick="showProductModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+              <i class="fas fa-plus mr-2"></i>添加产品
+            </button>
+          </div>
+          <div class="bg-white rounded-xl p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="productList"></div>
+          </div>
+        </div>
+
+        <!-- 订单管理 -->
+        <div id="ordersPage" class="page hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">订单管理</h2>
+            <button onclick="showOrderModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+              <i class="fas fa-plus mr-2"></i>创建订单
+            </button>
+          </div>
+          <div class="bg-white rounded-xl p-6">
+            <div class="flex gap-4 mb-4">
+              <select id="orderStatus" class="px-4 py-2 border rounded-lg" onchange="loadOrders()">
+                <option value="">全部状态</option>
+                <option value="pending">待处理</option>
+                <option value="confirmed">已确认</option>
+                <option value="producing">生产中</option>
+                <option value="shipped">已发货</option>
+                <option value="completed">已完成</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-gray-600">订单号</th>
+                    <th class="px-4 py-3 text-left text-gray-600">客户</th>
+                    <th class="px-4 py-3 text-left text-gray-600">产品</th>
+                    <th class="px-4 py-3 text-left text-gray-600">数量</th>
+                    <th class="px-4 py-3 text-left text-gray-600">金额</th>
+                    <th class="px-4 py-3 text-left text-gray-600">状态</th>
+                    <th class="px-4 py-3 text-left text-gray-600">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="orderList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 询盘管理 -->
+        <div id="inquiriesPage" class="page hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">询盘管理</h2>
+            <button onclick="showInquiryModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+              <i class="fas fa-plus mr-2"></i>添加询盘
+            </button>
+          </div>
+          <div class="bg-white rounded-xl p-6">
+            <div class="flex gap-4 mb-4">
+              <select id="inquiryStatus" class="px-4 py-2 border rounded-lg" onchange="loadInquiries()">
+                <option value="">全部状态</option>
+                <option value="new">新询盘</option>
+                <option value="processing">处理中</option>
+                <option value="quoted">已报价</option>
+                <option value="closed">已关闭</option>
+              </select>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-gray-600">询盘编号</th>
+                    <th class="px-4 py-3 text-left text-gray-600">客户</th>
+                    <th class="px-4 py-3 text-left text-gray-600">产品</th>
+                    <th class="px-4 py-3 text-left text-gray-600">数量</th>
+                    <th class="px-4 py-3 text-left text-gray-600">状态</th>
+                    <th class="px-4 py-3 text-left text-gray-600">日期</th>
+                    <th class="px-4 py-3 text-left text-gray-600">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="inquiryList"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 客户模态框 -->
+    <div id="customerModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold" id="customerModalTitle">添加客户</h3>
+          <button onclick="closeCustomerModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <form onsubmit="saveCustomer(event)">
+          <input type="hidden" id="customerId">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">客户名称 *</label>
+              <input type="text" id="customerName" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">公司名称</label>
+              <input type="text" id="customerCompany" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">国家 *</label>
+              <input type="text" id="customerCountry" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">状态</label>
+              <select id="customerStatusInput" class="w-full px-3 py-2 border rounded-lg">
+                <option value="potential">潜在</option>
+                <option value="active">活跃</option>
+                <option value="inactive">不活跃</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">邮箱</label>
+              <input type="email" id="customerEmail" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">电话</label>
+              <input type="text" id="customerPhone" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">地址</label>
+              <input type="text" id="customerAddress" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">备注</label>
+              <textarea id="customerNotes" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" onclick="closeCustomerModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 产品模态框 -->
+    <div id="productModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold" id="productModalTitle">添加产品</h3>
+          <button onclick="closeProductModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <form onsubmit="saveProduct(event)">
+          <input type="hidden" id="productId">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">产品名称 *</label>
+              <input type="text" id="productName" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">产品类别</label>
+              <select id="productCategory" class="w-full px-3 py-2 border rounded-lg">
+                <option value="重型车系列">重型车系列</option>
+                <option value="轻型车系列">轻型车系列</option>
+                <option value="客车系列">客车系列</option>
+                <option value="挂车系列">挂车系列</option>
+                <option value="工程车系列">工程车系列</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">材质规格</label>
+              <input type="text" id="productSpec" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">厚度范围</label>
+              <input type="text" id="productThickness" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">宽度范围</label>
+              <input type="text" id="productWidth" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">产品描述</label>
+              <textarea id="productDescription" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" onclick="closeProductModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 订单模态框 -->
+    <div id="orderModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">创建订单</h3>
+          <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <form onsubmit="saveOrder(event)">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">客户 *</label>
+              <select id="orderCustomer" required class="w-full px-3 py-2 border rounded-lg"></select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">产品 *</label>
+              <select id="orderProduct" required class="w-full px-3 py-2 border rounded-lg"></select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">数量 *</label>
+              <input type="number" id="orderQuantity" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">单位</label>
+              <select id="orderUnit" class="w-full px-3 py-2 border rounded-lg">
+                <option value="吨">吨</option>
+                <option value="套">套</option>
+                <option value="件">件</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">单价(USD)</label>
+              <input type="number" id="orderPrice" step="0.01" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">总金额(USD)</label>
+              <input type="number" id="orderAmount" step="0.01" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">备注</label>
+              <textarea id="orderNotes" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" onclick="closeOrderModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">创建</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 询盘模态框 -->
+    <div id="inquiryModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 fade-in">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold">添加询盘</h3>
+          <button onclick="closeInquiryModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <form onsubmit="saveInquiry(event)">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">客户 *</label>
+              <select id="inquiryCustomer" required class="w-full px-3 py-2 border rounded-lg"></select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">产品 *</label>
+              <select id="inquiryProduct" required class="w-full px-3 py-2 border rounded-lg"></select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">数量</label>
+              <input type="number" id="inquiryQuantity" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">单位</label>
+              <select id="inquiryUnit" class="w-full px-3 py-2 border rounded-lg">
+                <option value="吨">吨</option>
+                <option value="套">套</option>
+                <option value="件">件</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">询盘内容</label>
+              <textarea id="inquiryContent" rows="3" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-4">
+            <button type="button" onclick="closeInquiryModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
+      <div id="toastContent" class="rounded-lg shadow-lg p-4 min-w-64"></div>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('token');
+    let currentUser = null;
+    let customersData = [];
+    let productsData = [];
+
+    // 初始化
+    window.onload = () => {
+      if (token) checkAuth();
+    };
+
+    // 检查登录状态
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          currentUser = data.user;
+          showMainApp();
+        } else {
+          logout();
+        }
+      } catch (e) {
+        logout();
+      }
+    }
+
+    // 登录
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          token = data.token;
+          currentUser = data.user;
+          localStorage.setItem('token', token);
+          showMainApp();
+          showToast('success', '登录成功');
+        } else {
+          showToast('error', data.message);
+        }
+      } catch (e) {
+        showToast('error', '登录失败');
+      }
+    }
+
+    // 显示主界面
+    function showMainApp() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userName').textContent = currentUser.name;
+      loadStats();
+      loadCustomers();
+      loadProducts();
+    }
+
+    // 退出登录
+    function logout() {
+      token = null;
+      currentUser = null;
+      localStorage.removeItem('token');
+      document.getElementById('loginPage').classList.remove('hidden');
+      document.getElementById('mainApp').classList.add('hidden');
+    }
+
+    // 页面切换
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(page + 'Page').classList.remove('hidden');
+      document.querySelectorAll('.sidebar-item').forEach((item, i) => {
+        item.classList.remove('active');
+        if ((page === 'dashboard' && i === 0) || (page === 'customers' && i === 1) || 
+            (page === 'products' && i === 2) || (page === 'orders' && i === 3) || 
+            (page === 'inquiries' && i === 4)) {
+          item.classList.add('active');
+        }
+      });
+      if (page === 'dashboard') loadStats();
+      if (page === 'customers') loadCustomers();
+      if (page === 'products') loadProducts();
+      if (page === 'orders') loadOrders();
+      if (page === 'inquiries') loadInquiries();
+    }
+
+    // 加载统计数据
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('statCustomers').textContent = data.data.totalCustomers;
+          document.getElementById('statOrders').textContent = data.data.totalOrders;
+          document.getElementById('statInquiries').textContent = data.data.newInquiries;
+          document.getElementById('statPending').textContent = data.data.pendingOrders;
+          
+          // 最近订单
+          const ordersHtml = data.data.recentOrders.length ? 
+            data.data.recentOrders.map(o => `
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-semibold">${o.id}</p>
+                  <p class="text-sm text-gray-500">${o.customerName || '未知客户'}</p>
+                </div>
+                <span class="px-2 py-1 rounded text-xs ${getStatusColor(o.status)}">${getStatusText(o.status)}</span>
+              </div>
+            `).join('') : '<p class="text-gray-500 text-center py-4">暂无订单</p>';
+          document.getElementById('recentOrders').innerHTML = ordersHtml;
+          
+          // 最近询盘
+          const inquiriesHtml = data.data.recentInquiries.length ?
+            data.data.recentInquiries.map(i => `
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-semibold">${i.customerName || '未知客户'}</p>
+                  <p class="text-sm text-gray-500">${i.productName || '未知产品'}</p>
+                </div>
+                <span class="px-2 py-1 rounded text-xs ${getInquiryStatusColor(i.status)}">${getInquiryStatusText(i.status)}</span>
+              </div>
+            `).join('') : '<p class="text-gray-500 text-center py-4">暂无询盘</p>';
+          document.getElementById('recentInquiries').innerHTML = inquiriesHtml;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 加载客户
+    async function loadCustomers() {
+      try {
+        const search = document.getElementById('customerSearch')?.value || '';
+        const status = document.getElementById('customerStatus')?.value || '';
+        const res = await fetch(`/api/customers?search=${search}&status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          customersData = data.data;
+          const html = data.data.map(c => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-3">${c.name}</td>
+              <td class="px-4 py-3">${c.company || '-'}</td>
+              <td class="px-4 py-3">${c.country}</td>
+              <td class="px-4 py-3">${c.email || '-'}</td>
+              <td class="px-4 py-3">${c.phone || '-'}</td>
+              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerStatusColor(c.status)}">${getCustomerStatusText(c.status)}</span></td>
+              <td class="px-4 py-3">
+                <button onclick="editCustomer('${c.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteCustomer('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7" class="text-center py-4 text-gray-500">暂无客户数据</td></tr>';
+          document.getElementById('customerList').innerHTML = html;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 加载产品
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          productsData = data.data;
+          const html = data.data.map(p => `
+            <div class="bg-gray-50 rounded-lg p-4 card-hover transition">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="font-bold text-gray-800">${p.name}</h4>
+                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">${p.category}</span>
+              </div>
+              <p class="text-sm text-gray-500 mb-2">${p.description || ''}</p>
+              <div class="text-xs text-gray-400 space-y-1">
+                <p><i class="fas fa-cog mr-1"></i>材质: ${p.spec || '-'}</p>
+                <p><i class="fas fa-ruler mr-1"></i>厚度: ${p.thickness || '-'}</p>
+                <p><i class="fas fa-arrows-alt-h mr-1"></i>宽度: ${p.width || '-'}</p>
+              </div>
+              <div class="flex justify-end mt-3 pt-3 border-t">
+                <button onclick="editProduct('${p.id}')" class="text-blue-600 hover:text-blue-800 text-sm mr-3"><i class="fas fa-edit mr-1"></i>编辑</button>
+              </div>
+            </div>
+          `).join('');
+          document.getElementById('productList').innerHTML = html;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 加载订单
+    async function loadOrders() {
+      try {
+        const status = document.getElementById('orderStatus')?.value || '';
+        const res = await fetch(`/api/orders?status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          const html = data.data.map(o => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-3 font-mono">${o.id}</td>
+              <td class="px-4 py-3">${o.customerName || '-'}</td>
+              <td class="px-4 py-3">${o.productName || '-'}</td>
+              <td class="px-4 py-3">${o.quantity} ${o.unit}</td>
+              <td class="px-4 py-3">$${o.amount || 0}</td>
+              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getStatusColor(o.status)}">${getStatusText(o.status)}</span></td>
+              <td class="px-4 py-3">
+                <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-sm border rounded px-2 py-1">
+                  <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>待处理</option>
+                  <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>已确认</option>
+                  <option value="producing" ${o.status === 'producing' ? 'selected' : ''}>生产中</option>
+                  <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>已发货</option>
+                  <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>已完成</option>
+                </select>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7" class="text-center py-4 text-gray-500">暂无订单数据</td></tr>';
+          document.getElementById('orderList').innerHTML = html;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 加载询盘
+    async function loadInquiries() {
+      try {
+        const status = document.getElementById('inquiryStatus')?.value || '';
+        const res = await fetch(`/api/inquiries?status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.success) {
+          const html = data.data.map(i => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-3 font-mono">${i.id}</td>
+              <td class="px-4 py-3">${i.customerName || '-'}</td>
+              <td class="px-4 py-3">${i.productName || '-'}</td>
+              <td class="px-4 py-3">${i.quantity || '-'} ${i.unit || ''}</td>
+              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getInquiryStatusColor(i.status)}">${getInquiryStatusText(i.status)}</span></td>
+              <td class="px-4 py-3">${new Date(i.createdAt).toLocaleDateString()}</td>
+              <td class="px-4 py-3">
+                <select onchange="updateInquiryStatus('${i.id}', this.value)" class="text-sm border rounded px-2 py-1">
+                  <option value="new" ${i.status === 'new' ? 'selected' : ''}>新询盘</option>
+                  <option value="processing" ${i.status === 'processing' ? 'selected' : ''}>处理中</option>
+                  <option value="quoted" ${i.status === 'quoted' ? 'selected' : ''}>已报价</option>
+                  <option value="closed" ${i.status === 'closed' ? 'selected' : ''}>已关闭</option>
+                </select>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7" class="text-center py-4 text-gray-500">暂无询盘数据</td></tr>';
+          document.getElementById('inquiryList').innerHTML = html;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 状态颜色和文本
+    function getStatusColor(s) {
+      const colors = { pending: 'bg-yellow-100 text-yellow-600', confirmed: 'bg-blue-100 text-blue-600', producing: 'bg-purple-100 text-purple-600', shipped: 'bg-indigo-100 text-indigo-600', completed: 'bg-green-100 text-green-600' };
+      return colors[s] || 'bg-gray-100 text-gray-600';
+    }
+    function getStatusText(s) {
+      const texts = { pending: '待处理', confirmed: '已确认', producing: '生产中', shipped: '已发货', completed: '已完成' };
+      return texts[s] || s;
+    }
+    function getInquiryStatusColor(s) {
+      const colors = { new: 'bg-red-100 text-red-600', processing: 'bg-yellow-100 text-yellow-600', quoted: 'bg-blue-100 text-blue-600', closed: 'bg-gray-100 text-gray-600' };
+      return colors[s] || 'bg-gray-100 text-gray-600';
+    }
+    function getInquiryStatusText(s) {
+      const texts = { new: '新询盘', processing: '处理中', quoted: '已报价', closed: '已关闭' };
+      return texts[s] || s;
+    }
+    function getCustomerStatusColor(s) {
+      const colors = { active: 'bg-green-100 text-green-600', inactive: 'bg-gray-100 text-gray-600', potential: 'bg-blue-100 text-blue-600' };
+      return colors[s] || 'bg-gray-100 text-gray-600';
+    }
+    function getCustomerStatusText(s) {
+      const texts = { active: '活跃', inactive: '不活跃', potential: '潜在' };
+      return texts[s] || s;
+    }
+
+    // 客户操作
+    function showCustomerModal(id = null) {
+      document.getElementById('customerModal').classList.remove('hidden');
+      document.getElementById('customerModalTitle').textContent = id ? '编辑客户' : '添加客户';
+      document.getElementById('customerId').value = id || '';
+      if (id) {
+        const c = customersData.find(x => x.id === id);
+        if (c) {
+          document.getElementById('customerName').value = c.name;
+          document.getElementById('customerCompany').value = c.company || '';
+          document.getElementById('customerCountry').value = c.country;
+          document.getElementById('customerStatusInput').value = c.status;
+          document.getElementById('customerEmail').value = c.email || '';
+          document.getElementById('customerPhone').value = c.phone || '';
+          document.getElementById('customerAddress').value = c.address || '';
+          document.getElementById('customerNotes').value = c.notes || '';
+        }
+      } else {
+        document.getElementById('customerName').value = '';
+        document.getElementById('customerCompany').value = '';
+        document.getElementById('customerCountry').value = '';
+        document.getElementById('customerStatusInput').value = 'potential';
+        document.getElementById('customerEmail').value = '';
+        document.getElementById('customerPhone').value = '';
+        document.getElementById('customerAddress').value = '';
+        document.getElementById('customerNotes').value = '';
+      }
+    }
+    function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); }
+    function editCustomer(id) { showCustomerModal(id); }
+    async function saveCustomer(e) {
+      e.preventDefault();
+      const id = document.getElementById('customerId').value;
+      const data = {
+        name: document.getElementById('customerName').value,
+        company: document.getElementById('customerCompany').value,
+        country: document.getElementById('customerCountry').value,
+        status: document.getElementById('customerStatusInput').value,
+        email: document.getElementById('customerEmail').value,
+        phone: document.getElementById('customerPhone').value,
+        address: document.getElementById('customerAddress').value,
+        notes: document.getElementById('customerNotes').value
+      };
+      try {
+        const res = await fetch(`/api/customers${id ? '/' + id : ''}`, {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          closeCustomerModal();
+          loadCustomers();
+          showToast('success', id ? '客户更新成功' : '客户添加成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '操作失败');
+      }
+    }
+    async function deleteCustomer(id) {
+      if (!confirm('确定要删除这个客户吗？')) return;
+      try {
+        const res = await fetch(`/api/customers/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const result = await res.json();
+        if (result.success) {
+          loadCustomers();
+          showToast('success', '客户删除成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '删除失败');
+      }
+    }
+
+    // 产品操作
+    function showProductModal(id = null) {
+      document.getElementById('productModal').classList.remove('hidden');
+      document.getElementById('productModalTitle').textContent = id ? '编辑产品' : '添加产品';
+      document.getElementById('productId').value = id || '';
+      if (id) {
+        const p = productsData.find(x => x.id === id);
+        if (p) {
+          document.getElementById('productName').value = p.name;
+          document.getElementById('productCategory').value = p.category;
+          document.getElementById('productSpec').value = p.spec || '';
+          document.getElementById('productThickness').value = p.thickness || '';
+          document.getElementById('productWidth').value = p.width || '';
+          document.getElementById('productDescription').value = p.description || '';
+        }
+      } else {
+        document.getElementById('productName').value = '';
+        document.getElementById('productCategory').value = '重型车系列';
+        document.getElementById('productSpec').value = '';
+        document.getElementById('productThickness').value = '';
+        document.getElementById('productWidth').value = '';
+        document.getElementById('productDescription').value = '';
+      }
+    }
+    function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
+    function editProduct(id) { showProductModal(id); }
+    async function saveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('productId').value;
+      const data = {
+        name: document.getElementById('productName').value,
+        category: document.getElementById('productCategory').value,
+        spec: document.getElementById('productSpec').value,
+        thickness: document.getElementById('productThickness').value,
+        width: document.getElementById('productWidth').value,
+        description: document.getElementById('productDescription').value
+      };
+      try {
+        const res = await fetch(`/api/products${id ? '/' + id : ''}`, {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          closeProductModal();
+          loadProducts();
+          showToast('success', id ? '产品更新成功' : '产品添加成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '操作失败');
+      }
+    }
+
+    // 订单操作
+    function showOrderModal() {
+      document.getElementById('orderModal').classList.remove('hidden');
+      const customerSelect = document.getElementById('orderCustomer');
+      const productSelect = document.getElementById('orderProduct');
+      customerSelect.innerHTML = customersData.map(c => `<option value="${c.id}">${c.name} (${c.country})</option>`).join('');
+      productSelect.innerHTML = productsData.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    }
+    function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
+    async function saveOrder(e) {
+      e.preventDefault();
+      const customerId = document.getElementById('orderCustomer').value;
+      const productId = document.getElementById('orderProduct').value;
+      const customer = customersData.find(c => c.id === customerId);
+      const product = productsData.find(p => p.id === productId);
+      
+      const data = {
+        customerId,
+        customerName: customer?.name,
+        productId,
+        productName: product?.name,
+        quantity: document.getElementById('orderQuantity').value,
+        unit: document.getElementById('orderUnit').value,
+        price: document.getElementById('orderPrice').value,
+        amount: document.getElementById('orderAmount').value,
+        notes: document.getElementById('orderNotes').value
+      };
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          closeOrderModal();
+          loadOrders();
+          showToast('success', '订单创建成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '操作失败');
+      }
+    }
+    async function updateOrderStatus(id, status) {
+      try {
+        const res = await fetch(`/api/orders/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast('success', '状态更新成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '更新失败');
+      }
+    }
+
+    // 询盘操作
+    function showInquiryModal() {
+      document.getElementById('inquiryModal').classList.remove('hidden');
+      const customerSelect = document.getElementById('inquiryCustomer');
+      const productSelect = document.getElementById('inquiryProduct');
+      customerSelect.innerHTML = customersData.map(c => `<option value="${c.id}">${c.name} (${c.country})</option>`).join('');
+      productSelect.innerHTML = productsData.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    }
+    function closeInquiryModal() { document.getElementById('inquiryModal').classList.add('hidden'); }
+    async function saveInquiry(e) {
+      e.preventDefault();
+      const customerId = document.getElementById('inquiryCustomer').value;
+      const productId = document.getElementById('inquiryProduct').value;
+      const customer = customersData.find(c => c.id === customerId);
+      const product = productsData.find(p => p.id === productId);
+      
+      const data = {
+        customerId,
+        customerName: customer?.name,
+        productId,
+        productName: product?.name,
+        quantity: document.getElementById('inquiryQuantity').value,
+        unit: document.getElementById('inquiryUnit').value,
+        content: document.getElementById('inquiryContent').value
+      };
+      try {
+        const res = await fetch('/api/inquiries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          closeInquiryModal();
+          loadInquiries();
+          showToast('success', '询盘添加成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '操作失败');
+      }
+    }
+    async function updateInquiryStatus(id, status) {
+      try {
+        const res = await fetch(`/api/inquiries/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast('success', '状态更新成功');
+        } else {
+          showToast('error', result.message);
+        }
+      } catch (e) {
+        showToast('error', '更新失败');
+      }
+    }
+
+    // Toast提示
+    function showToast(type, message) {
+      const toast = document.getElementById('toast');
+      const content = document.getElementById('toastContent');
+      const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+      const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+      content.className = `${bgColor} rounded-lg shadow-lg p-4 min-w-64 text-white flex items-center`;
+      content.innerHTML = `<i class="fas ${icon} mr-3 text-xl"></i><span>${message}</span>`;
+      toast.classList.remove('translate-x-full');
+      setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+    }
+  </script>
+</body>
+</html>
