@@ -3,41 +3,100 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'huayu-crm-secret-key-2024';
+const DATA_DIR = path.join(__dirname, 'data');
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ==================== 内存数据库 ====================
-const users = [];
-const customers = [];
-const products = [];
-const orders = [];
-const inquiries = [];
+// ==================== 数据存储 ====================
+const DATA_FILES = {
+  users: path.join(DATA_DIR, 'users.json'),
+  customers: path.join(DATA_DIR, 'customers.json'),
+  products: path.join(DATA_DIR, 'products.json'),
+  orders: path.join(DATA_DIR, 'orders.json'),
+  inquiries: path.join(DATA_DIR, 'inquiries.json')
+};
 
-// 初始化管理员账号
-users.push({
-  id: '1',
-  username: 'admin',
-  password: bcrypt.hashSync('admin123', 10),
-  name: '系统管理员',
-  role: 'admin',
-  createdAt: new Date()
-});
+let users = [];
+let customers = [];
+let products = [];
+let orders = [];
+let inquiries = [];
 
-// 初始化产品数据（板簧产品）
-const initProducts = [
-  { id: 'P001', name: '重型卡车板簧', category: '重型车系列', spec: '60Si2MnA', thickness: '12-20mm', width: '70-120mm', price: 0, unit: '吨', description: '适用于重型卡车，承载能力强' },
-  { id: 'P002', name: '轻型卡车板簧', category: '轻型车系列', spec: '55Si2Mn', thickness: '8-14mm', width: '50-90mm', price: 0, unit: '吨', description: '适用于轻型卡车，弹性好' },
-  { id: 'P003', name: '客车板簧', category: '客车系列', spec: '50CrVA', thickness: '10-16mm', width: '60-100mm', price: 0, unit: '吨', description: '适用于客车，舒适性佳' },
-  { id: 'P004', name: '挂车板簧', category: '挂车系列', spec: '60Si2CrA', thickness: '12-22mm', width: '80-130mm', price: 0, unit: '吨', description: '适用于挂车，耐磨耐用' },
-  { id: 'P005', name: '工程车板簧', category: '工程车系列', spec: '55SiMnVB', thickness: '14-25mm', width: '90-140mm', price: 0, unit: '吨', description: '适用于工程车辆，承重极佳' }
-];
-products.push(...initProducts);
+// 确保数据目录存在
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// 加载数据
+function loadData(filename, defaultData = []) {
+  try {
+    if (fs.existsSync(filename)) {
+      const data = fs.readFileSync(filename, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.error(`加载 ${filename} 失败:`, e.message);
+  }
+  return defaultData;
+}
+
+// 保存数据
+function saveData(filename, data) {
+  try {
+    fs.writeFileSync(filename, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {
+    console.error(`保存 ${filename} 失败:`, e.message);
+  }
+}
+
+// 初始化数据
+function initData() {
+  users = loadData(DATA_FILES.users);
+  customers = loadData(DATA_FILES.customers);
+  products = loadData(DATA_FILES.products);
+  orders = loadData(DATA_FILES.orders);
+  inquiries = loadData(DATA_FILES.inquiries);
+  
+  // 如果没有用户，创建默认管理员
+  if (users.length === 0) {
+    users.push({
+      id: '1',
+      username: 'admin',
+      password: bcrypt.hashSync('admin123', 10),
+      name: '系统管理员',
+      role: 'admin',
+      createdAt: new Date()
+    });
+    saveData(DATA_FILES.users, users);
+  }
+  
+  // 如果没有产品，初始化默认产品
+  if (products.length === 0) {
+    products = [
+      { id: 'P001', name: '重型卡车板簧', category: '重型车系列', spec: '60Si2MnA', thickness: '12-20mm', width: '70-120mm', price: 0, unit: '吨', description: '适用于重型卡车，承载能力强' },
+      { id: 'P002', name: '轻型卡车板簧', category: '轻型车系列', spec: '55Si2Mn', thickness: '8-14mm', width: '50-90mm', price: 0, unit: '吨', description: '适用于轻型卡车，弹性好' },
+      { id: 'P003', name: '客车板簧', category: '客车系列', spec: '50CrVA', thickness: '10-16mm', width: '60-100mm', price: 0, unit: '吨', description: '适用于客车，舒适性佳' },
+      { id: 'P004', name: '挂车板簧', category: '挂车系列', spec: '60Si2CrA', thickness: '12-22mm', width: '80-130mm', price: 0, unit: '吨', description: '适用于挂车，耐磨耐用' },
+      { id: 'P005', name: '工程车板簧', category: '工程车系列', spec: '55SiMnVB', thickness: '14-25mm', width: '90-140mm', price: 0, unit: '吨', description: '适用于工程车辆，承重极佳' }
+    ];
+    saveData(DATA_FILES.products, products);
+  }
+  
+  console.log('数据加载完成:', {
+    users: users.length,
+    customers: customers.length,
+    products: products.length,
+    orders: orders.length,
+    inquiries: inquiries.length
+  });
+}
 
 // ==================== 工具函数 ====================
 const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -83,7 +142,6 @@ app.get('/api/me', authMiddleware, (req, res) => {
 
 // ==================== 客户管理 ====================
 
-// 获取客户列表
 app.get('/api/customers', authMiddleware, (req, res) => {
   const { search, status, country } = req.query;
   let result = [...customers];
@@ -102,7 +160,6 @@ app.get('/api/customers', authMiddleware, (req, res) => {
   res.json({ success: true, data: result, total: result.length });
 });
 
-// 添加客户
 app.post('/api/customers', authMiddleware, (req, res) => {
   const customer = {
     id: generateId(),
@@ -111,53 +168,52 @@ app.post('/api/customers', authMiddleware, (req, res) => {
     createdBy: req.user.name
   };
   customers.push(customer);
+  saveData(DATA_FILES.customers, customers);
   res.json({ success: true, message: '客户添加成功', data: customer });
 });
 
-// 更新客户
 app.put('/api/customers/:id', authMiddleware, (req, res) => {
   const index = customers.findIndex(c => c.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: '客户不存在' });
   
   customers[index] = { ...customers[index], ...req.body, updatedAt: new Date() };
+  saveData(DATA_FILES.customers, customers);
   res.json({ success: true, message: '客户更新成功', data: customers[index] });
 });
 
-// 删除客户
 app.delete('/api/customers/:id', authMiddleware, (req, res) => {
   const index = customers.findIndex(c => c.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: '客户不存在' });
   
   customers.splice(index, 1);
+  saveData(DATA_FILES.customers, customers);
   res.json({ success: true, message: '客户删除成功' });
 });
 
 // ==================== 产品管理 ====================
 
-// 获取产品列表
 app.get('/api/products', authMiddleware, (req, res) => {
   res.json({ success: true, data: products });
 });
 
-// 添加产品
 app.post('/api/products', authMiddleware, (req, res) => {
   const product = { id: 'P' + generateId().toUpperCase(), ...req.body };
   products.push(product);
+  saveData(DATA_FILES.products, products);
   res.json({ success: true, message: '产品添加成功', data: product });
 });
 
-// 更新产品
 app.put('/api/products/:id', authMiddleware, (req, res) => {
   const index = products.findIndex(p => p.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: '产品不存在' });
   
   products[index] = { ...products[index], ...req.body };
+  saveData(DATA_FILES.products, products);
   res.json({ success: true, message: '产品更新成功', data: products[index] });
 });
 
 // ==================== 订单管理 ====================
 
-// 获取订单列表
 app.get('/api/orders', authMiddleware, (req, res) => {
   const { status, customerId } = req.query;
   let result = [...orders];
@@ -168,7 +224,6 @@ app.get('/api/orders', authMiddleware, (req, res) => {
   res.json({ success: true, data: result, total: result.length });
 });
 
-// 添加订单
 app.post('/api/orders', authMiddleware, (req, res) => {
   const order = {
     id: 'ORD' + Date.now(),
@@ -178,22 +233,22 @@ app.post('/api/orders', authMiddleware, (req, res) => {
     createdBy: req.user.name
   };
   orders.push(order);
+  saveData(DATA_FILES.orders, orders);
   res.json({ success: true, message: '订单创建成功', data: order });
 });
 
-// 更新订单状态
 app.put('/api/orders/:id/status', authMiddleware, (req, res) => {
   const index = orders.findIndex(o => o.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: '订单不存在' });
   
   orders[index].status = req.body.status;
   orders[index].updatedAt = new Date();
+  saveData(DATA_FILES.orders, orders);
   res.json({ success: true, message: '订单状态更新成功', data: orders[index] });
 });
 
 // ==================== 询盘管理 ====================
 
-// 获取询盘列表
 app.get('/api/inquiries', authMiddleware, (req, res) => {
   const { status } = req.query;
   let result = [...inquiries];
@@ -203,7 +258,6 @@ app.get('/api/inquiries', authMiddleware, (req, res) => {
   res.json({ success: true, data: result, total: result.length });
 });
 
-// 添加询盘
 app.post('/api/inquiries', authMiddleware, (req, res) => {
   const inquiry = {
     id: 'INQ' + Date.now(),
@@ -213,15 +267,16 @@ app.post('/api/inquiries', authMiddleware, (req, res) => {
     createdBy: req.user.name
   };
   inquiries.push(inquiry);
+  saveData(DATA_FILES.inquiries, inquiries);
   res.json({ success: true, message: '询盘添加成功', data: inquiry });
 });
 
-// 更新询盘
 app.put('/api/inquiries/:id', authMiddleware, (req, res) => {
   const index = inquiries.findIndex(i => i.id === req.params.id);
   if (index === -1) return res.status(404).json({ success: false, message: '询盘不存在' });
   
   inquiries[index] = { ...inquiries[index], ...req.body, updatedAt: new Date() };
+  saveData(DATA_FILES.inquiries, inquiries);
   res.json({ success: true, message: '询盘更新成功', data: inquiries[index] });
 });
 
@@ -250,6 +305,8 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 
 // ==================== 启动服务器 ====================
 
+initData();
+
 app.listen(PORT, () => {
   console.log('========================================');
   console.log('  四川华玉车辆板簧有限公司');
@@ -258,5 +315,6 @@ app.listen(PORT, () => {
   console.log(`  服务地址: http://localhost:${PORT}`);
   console.log(`  默认账号: admin`);
   console.log(`  默认密码: admin123`);
+  console.log(`  数据目录: ${DATA_DIR}`);
   console.log('========================================');
 });

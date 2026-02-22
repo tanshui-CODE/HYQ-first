@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  huayu-crm:
+    build: .
+    container_name: huayu-crm
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./data:/app/data
