@@ -68,8 +68,8 @@ function initData() {
   if (users.length === 0) {
     users.push({
       id: '1',
-      username: 'admin',
-      password: bcrypt.hashSync('admin123', 10),
+      username: 'SCHYBH',
+      password: bcrypt.hashSync('123456', 10),
       name: '系统管理员',
       role: 'admin',
       createdAt: new Date()
@@ -313,8 +313,8 @@ app.listen(PORT, () => {
   console.log('  外贸客户管理系统');
   console.log('========================================');
   console.log(`  服务地址: http://localhost:${PORT}`);
-  console.log(`  默认账号: admin`);
-  console.log(`  默认密码: admin123`);
+  console.log(`  默认账号: SCHYBH`);
+  console.log(`  默认密码: 123456`);
   console.log(`  数据目录: ${DATA_DIR}`);
   console.log('========================================');
 });
