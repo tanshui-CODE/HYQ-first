@@ -229,24 +229,19 @@
               </div>
             </div>
           </div>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 gap-6">
             <div class="bg-white rounded-xl p-6">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">客户类型分布</h3>
-              <canvas id="customerTypeChart" height="200"></canvas>
-            </div>
-            <div class="bg-white rounded-xl p-6">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">客户等级分布</h3>
-              <canvas id="customerLevelChart" height="200"></canvas>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div class="bg-white rounded-xl p-6">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">订单状态分布</h3>
-              <canvas id="orderStatusChart" height="200"></canvas>
-            </div>
-            <div class="bg-white rounded-xl p-6">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">最近订单趋势</h3>
-              <canvas id="orderTrendChart" height="200"></canvas>
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">数据图表</h3>
+                <div class="flex gap-2">
+                  <button onclick="prevChart()" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"><i class="fas fa-chevron-left"></i></button>
+                  <span id="chartPageInfo" class="px-3 py-1 text-sm text-gray-500">1 / 4</span>
+                  <button onclick="nextChart()" class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200"><i class="fas fa-chevron-right"></i></button>
+                </div>
+              </div>
+              <div id="chartContainer">
+                <canvas id="customerTypeChart" height="280"></canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -929,60 +924,104 @@
       }
     }
 
+    // 图表翻页
+    let currentChartPage = 1;
+    const totalChartPages = 4;
+    let charts = {};
+
+    function prevChart() {
+      if (currentChartPage > 1) {
+        currentChartPage--;
+        showChart(currentChartPage);
+      }
+    }
+
+    function nextChart() {
+      if (currentChartPage < totalChartPages) {
+        currentChartPage++;
+        showChart(currentChartPage);
+      }
+    }
+
+    function showChart(page) {
+      document.getElementById('chartPageInfo').textContent = page + ' / ' + totalChartPages;
+      const container = document.getElementById('chartContainer');
+      container.innerHTML = '<canvas id="chartCanvas" height="280"></canvas>';
+      
+      const chartTitles = ['客户类型分布', '客户等级分布', '订单状态分布', '最近订单趋势'];
+      container.querySelector('h3')?.remove();
+      container.innerHTML = '<h3 class="text-lg font-bold text-gray-800 mb-4">' + chartTitles[page-1] + '</h3><canvas id="chartCanvas" height="280"></canvas>';
+      
+      if (charts[page]) {
+        charts[page].destroy();
+      }
+      
+      const chartData = getChartData(page);
+      charts[page] = new Chart(document.getElementById('chartCanvas'), chartData);
+    }
+
+    function getChartData(page) {
+      const customers = window.customersData || [];
+      const orders = window.ordersData || [];
+      
+      if (page === 1) {
+        const typeCount = { distributor: 0, chassis: 0, manufacturer: 0, other: 0 };
+        customers.forEach(c => { if (c.type && typeCount[c.type] !== undefined) typeCount[c.type]++; });
+        return {
+          type: 'doughnut',
+          data: {
+            labels: ['分销商', '底盘商', '制造商', '其他'],
+            datasets: [{ data: [typeCount.distributor, typeCount.chassis, typeCount.manufacturer, typeCount.other], backgroundColor: ['#8B5CF6', '#3B82F6', '#10B981', '#6B7280'] }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        };
+      } else if (page === 2) {
+        const levelCount = { A: 0, B: 0, C: 0 };
+        customers.forEach(c => { if (c.level && levelCount[c.level] !== undefined) levelCount[c.level]++; });
+        return {
+          type: 'pie',
+          data: {
+            labels: ['A级(核心)', 'B级(重要)', 'C级(普通)'],
+            datasets: [{ data: [levelCount.A, levelCount.B, levelCount.C], backgroundColor: ['#EF4444', '#F59E0B', '#10B981'] }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        };
+      } else if (page === 3) {
+        const statusCount = { pending: 0, confirmed: 0, producing: 0, shipped: 0, completed: 0 };
+        orders.forEach(o => { if (o.status && statusCount[o.status] !== undefined) statusCount[o.status]++; });
+        return {
+          type: 'bar',
+          data: {
+            labels: ['待处理', '已确认', '生产中', '已发货', '已完成'],
+            datasets: [{ label: '订单数', data: [statusCount.pending, statusCount.confirmed, statusCount.producing, statusCount.shipped, statusCount.completed], backgroundColor: ['#F59E0B', '#3B82F6', '#8B5CF6', '#6366F1', '#10B981'] }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        };
+      } else {
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          last7Days.push(d.toISOString().split('T')[0]);
+        }
+        const orderByDay = last7Days.map(day => orders.filter(o => o.date && o.date.startsWith(day)).length);
+        return {
+          type: 'line',
+          data: {
+            labels: last7Days.map(d => d.slice(5)),
+            datasets: [{ label: '订单数', data: orderByDay, borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4 }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        };
+      }
+    }
+
     // 渲染图表
     function renderCharts(customers, orders) {
-      // 客户类型分布
-      const typeCount = { distributor: 0, chassis: 0, manufacturer: 0, other: 0 };
-      customers.forEach(c => { if (c.type && typeCount[c.type] !== undefined) typeCount[c.type]++; });
-      new Chart(document.getElementById('customerTypeChart'), {
-        type: 'doughnut',
-        data: {
-          labels: ['分销商', '底盘商', '制造商', '其他'],
-          datasets: [{ data: [typeCount.distributor, typeCount.chassis, typeCount.manufacturer, typeCount.other], backgroundColor: ['#8B5CF6', '#3B82F6', '#10B981', '#6B7280'] }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-      });
-
-      // 客户等级分布
-      const levelCount = { A: 0, B: 0, C: 0 };
-      customers.forEach(c => { if (c.level && levelCount[c.level] !== undefined) levelCount[c.level]++; });
-      new Chart(document.getElementById('customerLevelChart'), {
-        type: 'pie',
-        data: {
-          labels: ['A级(核心)', 'B级(重要)', 'C级(普通)'],
-          datasets: [{ data: [levelCount.A, levelCount.B, levelCount.C], backgroundColor: ['#EF4444', '#F59E0B', '#10B981'] }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-      });
-
-      // 订单状态分布
-      const statusCount = { pending: 0, confirmed: 0, producing: 0, shipped: 0, completed: 0 };
-      orders.forEach(o => { if (o.status && statusCount[o.status] !== undefined) statusCount[o.status]++; });
-      new Chart(document.getElementById('orderStatusChart'), {
-        type: 'bar',
-        data: {
-          labels: ['待处理', '已确认', '生产中', '已发货', '已完成'],
-          datasets: [{ label: '订单数', data: [statusCount.pending, statusCount.confirmed, statusCount.producing, statusCount.shipped, statusCount.completed], backgroundColor: ['#F59E0B', '#3B82F6', '#8B5CF6', '#6366F1', '#10B981'] }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-      });
-
-      // 最近订单趋势
-      const last7Days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        last7Days.push(d.toISOString().split('T')[0]);
-      }
-      const orderByDay = last7Days.map(day => orders.filter(o => o.date && o.date.startsWith(day)).length);
-      new Chart(document.getElementById('orderTrendChart'), {
-        type: 'line',
-        data: {
-          labels: last7Days.map(d => d.slice(5)),
-          datasets: [{ label: '订单数', data: orderByDay, borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4 }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-      });
+      window.customersData = customers;
+      window.ordersData = orders;
+      currentChartPage = 1;
+      showChart(1);
     }
 
     // 加载客户
