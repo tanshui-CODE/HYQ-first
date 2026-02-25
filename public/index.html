@@ -849,8 +849,8 @@
       const reader = new FileReader();
       reader.onload = async function(e) {
         try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const fileData = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(fileData, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
           
@@ -877,11 +877,11 @@ Excel表头: ${JSON.stringify(headers)}
             body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
           });
           
-          const data = await res.json();
+          const result = await res.json();
           
-          if (data.success) {
+          if (result.success) {
             try {
-              const customers = JSON.parse(data.response);
+              const customers = JSON.parse(result.response);
               if (Array.isArray(customers)) {
                 for (const c of customers) {
                   await fetch('/api/customers', {
