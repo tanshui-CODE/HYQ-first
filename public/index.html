@@ -129,7 +129,7 @@
           </div>
           <h2 class="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h2>
           <p class="text-gray-500 mb-8">Sign in to your CRM account</p>
-          <form onsubmit="handleLogin(event)">
+          <form onsubmit="return handleLogin(event)">
             <div class="mb-5">
               <label class="block text-gray-600 text-sm font-medium mb-2">Username</label>
               <div class="relative">
@@ -746,6 +746,11 @@
       const username = document.getElementById('loginUsername').value;
       const password = document.getElementById('loginPassword').value;
       
+      if (!username || !password) {
+        showToast('error', '请输入用户名和密码');
+        return false;
+      }
+      
       try {
         const res = await fetch('/api/login', {
           method: 'POST',
@@ -764,8 +769,9 @@
           showToast('error', data.message);
         }
       } catch (e) {
-        showToast('error', '登录失败');
+        showToast('error', '登录失败: ' + e.message);
       }
+      return false;
     }
 
     // 显示主界面
