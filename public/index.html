@@ -265,8 +265,8 @@
                     <th class="px-4 py-3 text-left text-gray-600">客户名称</th>
                     <th class="px-4 py-3 text-left text-gray-600">公司</th>
                     <th class="px-4 py-3 text-left text-gray-600">国家</th>
-                    <th class="px-4 py-3 text-left text-gray-600">邮箱</th>
-                    <th class="px-4 py-3 text-left text-gray-600">电话</th>
+                    <th class="px-4 py-3 text-left text-gray-600">类型</th>
+                    <th class="px-4 py-3 text-left text-gray-600">等级</th>
                     <th class="px-4 py-3 text-left text-gray-600">状态</th>
                     <th class="px-4 py-3 text-left text-gray-600">操作</th>
                   </tr>
@@ -487,6 +487,25 @@
                 <option value="potential">潜在</option>
                 <option value="active">活跃</option>
                 <option value="inactive">不活跃</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">客户类型</label>
+              <select id="customerTypeInput" class="w-full px-3 py-2 border rounded-lg">
+                <option value="">请选择</option>
+                <option value="distributor">分销商</option>
+                <option value="chassis">底盘商</option>
+                <option value="manufacturer">制造商</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">客户等级</label>
+              <select id="customerLevelInput" class="w-full px-3 py-2 border rounded-lg">
+                <option value="">请选择</option>
+                <option value="A">A级 (核心客户)</option>
+                <option value="B">B级 (重要客户)</option>
+                <option value="C">C级 (普通客户)</option>
               </select>
             </div>
             <div>
@@ -922,7 +941,9 @@
       try {
         const search = document.getElementById('customerSearch')?.value || '';
         const status = document.getElementById('customerStatus')?.value || '';
-        const res = await fetch(`/api/customers?search=${search}&status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const type = document.getElementById('customerType')?.value || '';
+        const level = document.getElementById('customerLevel')?.value || '';
+        const res = await fetch(`/api/customers?search=${search}&status=${status}&type=${type}&level=${level}`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = await res.json();
         if (data.success) {
           customersData = data.data;
@@ -931,8 +952,8 @@
               <td class="px-4 py-3">${c.name}</td>
               <td class="px-4 py-3">${c.company || '-'}</td>
               <td class="px-4 py-3">${c.country}</td>
-              <td class="px-4 py-3">${c.email || '-'}</td>
-              <td class="px-4 py-3">${c.phone || '-'}</td>
+              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerTypeColor(c.type)}">${getCustomerTypeText(c.type)}</span></td>
+              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerLevelColor(c.level)}">${c.level || '-'}</span></td>
               <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerStatusColor(c.status)}">${getCustomerStatusText(c.status)}</span></td>
               <td class="px-4 py-3">
                 <button onclick="editCustomer('${c.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
@@ -945,6 +966,35 @@
       } catch (e) {
         console.error(e);
       }
+    }
+
+    function getCustomerTypeColor(type) {
+      const colors = {
+        'distributor': 'bg-purple-100 text-purple-700',
+        'chassis': 'bg-blue-100 text-blue-700',
+        'manufacturer': 'bg-green-100 text-green-700',
+        'other': 'bg-gray-100 text-gray-700'
+      };
+      return colors[type] || 'bg-gray-100 text-gray-700';
+    }
+
+    function getCustomerTypeText(type) {
+      const texts = {
+        'distributor': '分销商',
+        'chassis': '底盘商',
+        'manufacturer': '制造商',
+        'other': '其他'
+      };
+      return texts[type] || '未分类';
+    }
+
+    function getCustomerLevelColor(level) {
+      const colors = {
+        'A': 'bg-red-100 text-red-700',
+        'B': 'bg-yellow-100 text-yellow-700',
+        'C': 'bg-green-100 text-green-700'
+      };
+      return colors[level] || 'bg-gray-100 text-gray-700';
     }
 
     // 加载产品
@@ -1080,7 +1130,9 @@
           document.getElementById('customerName').value = c.name;
           document.getElementById('customerCompany').value = c.company || '';
           document.getElementById('customerCountry').value = c.country;
-          document.getElementById('customerStatusInput').value = c.status;
+          document.getElementById('customerStatusInput').value = c.status || 'potential';
+          document.getElementById('customerTypeInput').value = c.type || '';
+          document.getElementById('customerLevelInput').value = c.level || '';
           document.getElementById('customerEmail').value = c.email || '';
           document.getElementById('customerPhone').value = c.phone || '';
           document.getElementById('customerAddress').value = c.address || '';
@@ -1091,6 +1143,8 @@
         document.getElementById('customerCompany').value = '';
         document.getElementById('customerCountry').value = '';
         document.getElementById('customerStatusInput').value = 'potential';
+        document.getElementById('customerTypeInput').value = '';
+        document.getElementById('customerLevelInput').value = '';
         document.getElementById('customerEmail').value = '';
         document.getElementById('customerPhone').value = '';
         document.getElementById('customerAddress').value = '';
@@ -1107,6 +1161,8 @@
         company: document.getElementById('customerCompany').value,
         country: document.getElementById('customerCountry').value,
         status: document.getElementById('customerStatusInput').value,
+        type: document.getElementById('customerTypeInput').value,
+        level: document.getElementById('customerLevelInput').value,
         email: document.getElementById('customerEmail').value,
         phone: document.getElementById('customerPhone').value,
         address: document.getElementById('customerAddress').value,

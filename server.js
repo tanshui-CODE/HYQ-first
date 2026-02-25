@@ -146,7 +146,7 @@ app.get('/api/me', authMiddleware, (req, res) => {
 // ==================== 客户管理 ====================
 
 app.get('/api/customers', authMiddleware, (req, res) => {
-  const { search, status, country } = req.query;
+  const { search, status, country, type, level } = req.query;
   let result = [...customers];
   
   if (search) {
@@ -159,6 +159,8 @@ app.get('/api/customers', authMiddleware, (req, res) => {
   }
   if (status) result = result.filter(c => c.status === status);
   if (country) result = result.filter(c => c.country === country);
+  if (type) result = result.filter(c => c.type === type);
+  if (level) result = result.filter(c => c.level === level);
   
   res.json({ success: true, data: result, total: result.length });
 });
@@ -371,10 +373,16 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 - 询盘总数：${inquiries.length}
 - 产品总数：${products.length}
 
+客户类型分布：分销商=${customers.filter(c=>c.type==='distributor').length}, 底盘商=${customers.filter(c=>c.type==='chassis').length}, 制造商=${customers.filter(c=>c.type==='manufacturer').length}
+客户等级分布：A级=${customers.filter(c=>c.level==='A').length}, B级=${customers.filter(c=>c.level==='B').length}, C级=${customers.filter(c=>c.level==='C').length}
+
 客户数据：${JSON.stringify(customers.slice(0, 20), null, 2)}
 订单数据：${JSON.stringify(orders.slice(0, 10), null, 2)}
 询盘数据：${JSON.stringify(inquiries.slice(0, 10), null, 2)}
 产品数据：${JSON.stringify(products, null, 2)}
+
+客户类型说明：distributor=分销商, chassis=底盘商, manufacturer=制造商
+客户等级说明：A级=核心客户, B级=重要客户, C级=普通客户
 
 请用中文回答用户问题，提供专业的业务分析和建议。如果用户问的是数据分析，请给出具体的数字和洞察。`;
 
