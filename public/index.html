@@ -240,7 +240,7 @@
                 </div>
               </div>
               <div id="chartContainer">
-                <canvas id="customerTypeChart" height="280"></canvas>
+                <canvas id="customerTypeChart" height="150"></canvas>
               </div>
             </div>
           </div>
@@ -946,11 +946,11 @@
     function showChart(page) {
       document.getElementById('chartPageInfo').textContent = page + ' / ' + totalChartPages;
       const container = document.getElementById('chartContainer');
-      container.innerHTML = '<canvas id="chartCanvas" height="280"></canvas>';
+      container.innerHTML = '<canvas id="chartCanvas" height="150"></canvas>';
       
       const chartTitles = ['客户类型分布', '客户等级分布', '订单状态分布', '最近订单趋势'];
       container.querySelector('h3')?.remove();
-      container.innerHTML = '<h3 class="text-lg font-bold text-gray-800 mb-4">' + chartTitles[page-1] + '</h3><canvas id="chartCanvas" height="280"></canvas>';
+      container.innerHTML = '<h3 class="text-lg font-bold text-gray-800 mb-4">' + chartTitles[page-1] + '</h3><canvas id="chartCanvas" height="150"></canvas>';
       
       if (charts[page]) {
         charts[page].destroy();
