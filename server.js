@@ -4,11 +4,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'huayu-crm-secret-key-2024';
 const DATA_DIR = path.join(__dirname, 'data');
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+const DEEPSEEK_API_URL = 'api.deepseek.com';
 
 app.use(cors());
 app.use(express.json());
@@ -301,6 +304,133 @@ app.get('/api/stats', authMiddleware, (req, res) => {
       recentInquiries: inquiries.slice(-5).reverse()
     }
   });
+});
+
+// ==================== AI分析功能 ====================
+
+function callDeepSeekAPI(messages, apiKey) {
+  return new Promise((resolve, reject) => {
+    const requestBody = JSON.stringify({
+      model: 'deepseek-chat',
+      messages: messages,
+      max_tokens: 2000,
+      temperature: 0.7
+    });
+
+    const options = {
+      hostname: DEEPSEEK_API_URL,
+      port: 443,
+      path: '/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Length': Buffer.byteLength(requestBody)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) {
+            reject(new Error(parsed.error.message || 'API Error'));
+          } else {
+            resolve(parsed.choices[0].message.content);
+          }
+        } catch (e) {
+          reject(new Error('解析响应失败'));
+        }
+      });
+    });
+
+    req.on('error', (e) => reject(e));
+    req.write(requestBody);
+    req.end();
+  });
+}
+
+app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+  const { message, apiKey } = req.body;
+  
+  if (!apiKey) {
+    return res.status(400).json({ success: false, message: '请提供API Key' });
+  }
+  
+  if (!message) {
+    return res.status(400).json({ success: false, message: '请输入问题' });
+  }
+
+  const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，专门帮助分析客户数据和业务情况。
+
+当前数据库信息：
+- 客户总数：${customers.length}
+- 订单总数：${orders.length}
+- 询盘总数：${inquiries.length}
+- 产品总数：${products.length}
+
+客户数据：${JSON.stringify(customers.slice(0, 20), null, 2)}
+订单数据：${JSON.stringify(orders.slice(0, 10), null, 2)}
+询盘数据：${JSON.stringify(inquiries.slice(0, 10), null, 2)}
+产品数据：${JSON.stringify(products, null, 2)}
+
+请用中文回答用户问题，提供专业的业务分析和建议。如果用户问的是数据分析，请给出具体的数字和洞察。`;
+
+  try {
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: message }
+    ];
+    
+    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+    res.json({ success: true, response: aiResponse });
+  } catch (error) {
+    console.error('AI API Error:', error.message);
+    res.status(500).json({ success: false, message: 'AI请求失败: ' + error.message });
+  }
+});
+
+app.post('/api/ai/analyze-customer/:id', authMiddleware, async (req, res) => {
+  const { apiKey } = req.body;
+  const customerId = req.params.id;
+  
+  if (!apiKey) {
+    return res.status(400).json({ success: false, message: '请提供API Key' });
+  }
+
+  const customer = customers.find(c => c.id === customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: '客户不存在' });
+  }
+
+  const customerOrders = orders.filter(o => o.customerId === customerId);
+  const customerInquiries = inquiries.filter(i => i.customerId === customerId);
+
+  const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，专门分析客户信息。
+
+客户信息：${JSON.stringify(customer, null, 2)}
+客户订单：${JSON.stringify(customerOrders, null, 2)}
+客户询盘：${JSON.stringify(customerInquiries, null, 2)}
+
+请分析这个客户，提供：
+1. 客户价值评估
+2. 合作建议
+3. 潜在需求分析
+4. 跟进建议`;
+
+  try {
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: '请分析这个客户' }
+    ];
+    
+    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+    res.json({ success: true, response: aiResponse });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'AI分析失败: ' + error.message });
+  }
 });
 
 // ==================== 启动服务器 ====================

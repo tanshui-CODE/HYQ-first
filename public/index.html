@@ -160,6 +160,9 @@
           <div onclick="showPage('inquiries')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
             <i class="fas fa-envelope w-6"></i><span>询盘管理</span>
           </div>
+          <div onclick="showPage('ai')" class="sidebar-item flex items-center px-4 py-3 rounded-lg cursor-pointer mb-2 hover:bg-gray-800 transition">
+            <i class="fas fa-robot w-6"></i><span>AI助手</span>
+          </div>
         </nav>
         <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
           <div class="flex items-center justify-between">
@@ -358,6 +361,98 @@
                 </thead>
                 <tbody id="inquiryList"></tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI助手 -->
+        <div id="aiPage" class="page hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">AI智能助手</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+              <div class="bg-white rounded-xl p-6 h-[600px] flex flex-col">
+                <div class="flex items-center gap-3 pb-4 border-b">
+                  <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-robot text-white"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold">华玉AI助手</h3>
+                    <p class="text-sm text-gray-500">基于DeepSeek大模型</p>
+                  </div>
+                </div>
+                
+                <div id="aiChatMessages" class="flex-1 overflow-y-auto py-4 space-y-4">
+                  <div class="flex gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                      <p class="text-gray-700">您好！我是华玉AI助手，可以帮您分析客户数据、订单情况和业务趋势。请问有什么可以帮您的？</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="pt-4 border-t">
+                  <div class="flex gap-2">
+                    <input type="text" id="aiInput" placeholder="输入您的问题，例如：分析一下客户分布情况" 
+                      class="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      onkeypress="if(event.key==='Enter')sendAIMessage()">
+                    <button onclick="sendAIMessage()" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="space-y-6">
+              <div class="bg-white rounded-xl p-6">
+                <h3 class="font-semibold mb-4"><i class="fas fa-key mr-2 text-blue-500"></i>API设置</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">DeepSeek API Key</label>
+                    <input type="password" id="deepseekApiKey" placeholder="sk-xxxxxxxxxxxxxxxx" 
+                      class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                  </div>
+                  <button onclick="saveApiKey()" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                    保存API Key
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-white rounded-xl p-6">
+                <h3 class="font-semibold mb-4"><i class="fas fa-lightbulb mr-2 text-yellow-500"></i>快捷提问</h3>
+                <div class="space-y-2">
+                  <button onclick="quickAsk('分析一下客户分布情况')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
+                    📊 分析客户分布情况
+                  </button>
+                  <button onclick="quickAsk('哪些客户最近没有跟进')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
+                    🔍 查找需要跟进的客户
+                  </button>
+                  <button onclick="quickAsk('分析订单趋势和销售额')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
+                    📈 分析订单趋势
+                  </button>
+                  <button onclick="quickAsk('给我一些客户开发建议')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
+                    💡 客户开发建议
+                  </button>
+                  <button onclick="quickAsk('分析询盘转化率')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
+                    📋 分析询盘转化率
+                  </button>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-6 text-white">
+                <h3 class="font-semibold mb-2"><i class="fas fa-info-circle mr-2"></i>AI能力说明</h3>
+                <ul class="text-sm space-y-1 text-blue-100">
+                  <li>• 分析客户数据和画像</li>
+                  <li>• 预测销售趋势</li>
+                  <li>• 提供业务建议</li>
+                  <li>• 解答产品问题</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -648,7 +743,7 @@
         item.classList.remove('active');
         if ((page === 'dashboard' && i === 0) || (page === 'customers' && i === 1) || 
             (page === 'products' && i === 2) || (page === 'orders' && i === 3) || 
-            (page === 'inquiries' && i === 4)) {
+            (page === 'inquiries' && i === 4) || (page === 'ai' && i === 5)) {
           item.classList.add('active');
         }
       });
@@ -657,6 +752,127 @@
       if (page === 'products') loadProducts();
       if (page === 'orders') loadOrders();
       if (page === 'inquiries') loadInquiries();
+      if (page === 'ai') loadApiKey();
+    }
+
+    // ==================== AI功能 ====================
+    let savedApiKey = '';
+
+    function loadApiKey() {
+      const key = localStorage.getItem('deepseekApiKey');
+      if (key) {
+        savedApiKey = key;
+        document.getElementById('deepseekApiKey').value = key;
+      }
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('deepseekApiKey').value.trim();
+      if (!key) {
+        showToast('error', '请输入API Key');
+        return;
+      }
+      localStorage.setItem('deepseekApiKey', key);
+      savedApiKey = key;
+      showToast('success', 'API Key保存成功');
+    }
+
+    function quickAsk(question) {
+      document.getElementById('aiInput').value = question;
+      sendAIMessage();
+    }
+
+    async function sendAIMessage() {
+      const input = document.getElementById('aiInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      if (!savedApiKey) {
+        showToast('error', '请先保存API Key');
+        return;
+      }
+
+      const chatMessages = document.getElementById('aiChatMessages');
+      
+      chatMessages.innerHTML += `
+        <div class="flex gap-3 justify-end">
+          <div class="bg-blue-500 text-white rounded-lg p-3 max-w-[80%]">
+            <p>${message}</p>
+          </div>
+          <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user text-gray-600 text-sm"></i>
+          </div>
+        </div>
+      `;
+
+      input.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const loadingId = 'loading-' + Date.now();
+      chatMessages.innerHTML += `
+        <div id="${loadingId}" class="flex gap-3">
+          <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-robot text-white text-sm"></i>
+          </div>
+          <div class="bg-gray-100 rounded-lg p-3">
+            <p class="text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>思考中...</p>
+          </div>
+        </div>
+      `;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ message, apiKey: savedApiKey })
+        });
+
+        const data = await res.json();
+        document.getElementById(loadingId).remove();
+
+        if (data.success) {
+          const formattedResponse = data.response.replace(/\n/g, '<br>');
+          chatMessages.innerHTML += `
+            <div class="flex gap-3">
+              <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-robot text-white text-sm"></i>
+              </div>
+              <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
+                <p class="text-gray-700 whitespace-pre-wrap">${formattedResponse}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          chatMessages.innerHTML += `
+            <div class="flex gap-3">
+              <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-exclamation text-white text-sm"></i>
+              </div>
+              <div class="bg-red-50 rounded-lg p-3">
+                <p class="text-red-600">${data.message}</p>
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        document.getElementById(loadingId).remove();
+        chatMessages.innerHTML += `
+          <div class="flex gap-3">
+            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-exclamation text-white text-sm"></i>
+            </div>
+            <div class="bg-red-50 rounded-lg p-3">
+              <p class="text-red-600">请求失败，请检查网络连接</p>
+            </div>
+          </div>
+        `;
+      }
+
+      chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     // 加载统计数据
