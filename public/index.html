@@ -8,16 +8,36 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .sidebar-item.active { background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    :root {
+      --primary-orange: #f97316;
+      --primary-blue: #2563eb;
+      --secondary-orange: #ea580c;
+      --secondary-blue: #1d4ed8;
+      --light-orange: #ffedd5;
+      --light-blue: #dbeafe;
+    }
+    .sidebar-item.active { background: linear-gradient(90deg, #f97316 0%, #ea580c 100%); }
+    .bg-gradient-to-r.from-blue-500.to-purple-500 { background: linear-gradient(90deg, #f97316 0%, #2563eb 100%) !important; }
+    .bg-gradient-to-r.from-purple-500.to-pink-500 { background: linear-gradient(90deg, #2563eb 0%, #f97316 100%) !important; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(249, 115, 22, 0.15); }
     .fade-in { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .modal { backdrop-filter: blur(4px); }
     .login-left {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #2563eb 100%);
       position: relative;
       overflow: hidden;
     }
+    .btn-primary { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+    .btn-primary:hover { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+    .text-primary-orange { color: #f97316; }
+    .text-primary-blue { color: #2563eb; }
+    .border-primary-orange { border-color: #f97316; }
+    .border-primary-blue { border-color: #2563eb; }
+    .bg-primary-orange { background-color: #f97316; }
+    .bg-primary-blue { background-color: #2563eb; }
+    .hover\:bg-orange-600:hover { background-color: #ea580c; }
+    .hover\:text-orange-600:hover { color: #ea580c; }
     .login-left::before {
       content: '';
       position: absolute;
@@ -190,8 +210,8 @@
                   <p class="text-gray-500">客户总数</p>
                   <p class="text-3xl font-bold text-gray-800" id="statCustomers">0</p>
                 </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <i class="fas fa-users text-blue-600 text-xl"></i>
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-users text-orange-600 text-xl"></i>
                 </div>
               </div>
             </div>
@@ -250,7 +270,7 @@
         <div id="customersPage" class="page hidden">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">客户管理</h2>
-            <button onclick="showCustomerModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="showCustomerModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
               <i class="fas fa-plus mr-2"></i>添加客户
             </button>
           </div>
@@ -287,7 +307,7 @@
         <div id="productsPage" class="page hidden">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">产品管理</h2>
-            <button onclick="showProductModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="showProductModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
               <i class="fas fa-plus mr-2"></i>添加产品
             </button>
           </div>
@@ -300,7 +320,7 @@
         <div id="ordersPage" class="page hidden">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">订单管理</h2>
-            <button onclick="showOrderModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="showOrderModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
               <i class="fas fa-plus mr-2"></i>创建订单
             </button>
           </div>
@@ -338,7 +358,7 @@
         <div id="inquiriesPage" class="page hidden">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">询盘管理</h2>
-            <button onclick="showInquiryModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <button onclick="showInquiryModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
               <i class="fas fa-plus mr-2"></i>添加询盘
             </button>
           </div>
@@ -423,7 +443,7 @@
                     <input type="password" id="deepseekApiKey" placeholder="sk-xxxxxxxxxxxxxxxx" 
                       class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                   </div>
-                  <button onclick="saveApiKey()" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm">
+                  <button onclick="saveApiKey()" class="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm">
                     保存API Key
                   </button>
                 </div>
@@ -533,7 +553,7 @@
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button type="button" onclick="closeCustomerModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+            <button type="submit" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">保存</button>
           </div>
         </form>
       </div>
@@ -582,7 +602,7 @@
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button type="button" onclick="closeProductModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+            <button type="submit" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">保存</button>
           </div>
         </form>
       </div>
@@ -632,7 +652,7 @@
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button type="button" onclick="closeOrderModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">创建</button>
+            <button type="submit" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">创建</button>
           </div>
         </form>
       </div>
@@ -674,7 +694,7 @@
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button type="button" onclick="closeInquiryModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-100">取消</button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">保存</button>
+            <button type="submit" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">保存</button>
           </div>
         </form>
       </div>
