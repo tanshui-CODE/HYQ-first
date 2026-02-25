@@ -6,6 +6,7 @@
   <title>四川华玉车辆板簧有限公司 - 外贸客户管理系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -270,9 +271,15 @@
         <div id="customersPage" class="page hidden">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">客户管理</h2>
-            <button onclick="showCustomerModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
-              <i class="fas fa-plus mr-2"></i>添加客户
-            </button>
+            <div class="flex gap-2">
+              <button onclick="document.getElementById('excelImport').click()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                <i class="fas fa-file-import mr-2"></i>AI智能导入
+              </button>
+              <input type="file" id="excelImport" accept=".xlsx,.xls,.csv" class="hidden" onchange="importExcel(event)">
+              <button onclick="showCustomerModal()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
+                <i class="fas fa-plus mr-2"></i>添加客户
+              </button>
+            </div>
           </div>
           <div class="bg-white rounded-xl p-6">
             <div class="flex gap-4 mb-4">
@@ -820,6 +827,88 @@
       localStorage.setItem('deepseekApiKey', key);
       savedApiKey = key;
       showToast('success', 'API Key保存成功');
+    }
+
+    async function importExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      if (!savedApiKey) {
+        showToast('error', '请先在AI助手页面保存API Key');
+        return;
+      }
+
+      showToast('info', '正在解析Excel文件...');
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          if (jsonData.length < 2) {
+            showToast('error', 'Excel文件内容为空');
+            return;
+          }
+          
+          const headers = jsonData[0];
+          const rows = jsonData.slice(1).filter(row => row.some(cell => cell));
+          
+          showToast('info', `解析完成，共${rows.length}条数据，正在AI智能分析...`);
+          
+          const prompt = `请分析以下Excel表格数据，提取客户信息。我需要你返回一个JSON数组，每个元素包含以下字段：name(客户名称), company(公司), country(国家), email(邮箱), phone(电话), type(类型:distributor/chassis/manufacturer/other), level(等级:A/B/C), status(状态:active/inactive/potential), notes(备注)。
+
+Excel表头: ${JSON.stringify(headers)}
+数据行: ${JSON.stringify(rows.slice(0, 20))}
+
+请只返回JSON数组，不要其他文字。如果无法确定某个字段，请使用空字符串或默认值。`;
+
+          const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
+          });
+          
+          const data = await res.json();
+          
+          if (data.success) {
+            try {
+              const customers = JSON.parse(data.response);
+              if (Array.isArray(customers)) {
+                for (const c of customers) {
+                  await fetch('/api/customers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                      name: c.name || '未知',
+                      company: c.company || '',
+                      country: c.country || '未知',
+                      email: c.email || '',
+                      phone: c.phone || '',
+                      type: c.type || '',
+                      level: c.level || '',
+                      status: c.status || 'potential',
+                      notes: c.notes || ''
+                    })
+                  });
+                }
+                showToast('success', `成功导入${customers.length}个客户！`);
+                loadCustomers();
+              }
+            } catch (parseErr) {
+              showToast('error', 'AI返回数据格式有误，请检查Excel格式');
+            }
+          } else {
+            showToast('error', data.message);
+          }
+        } catch (err) {
+          showToast('error', '文件解析失败: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
     }
 
     function quickAsk(question) {
