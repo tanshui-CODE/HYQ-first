@@ -974,58 +974,74 @@ Excel表头: ${JSON.stringify(headers)}
 
 请只返回JSON数组，不要其他文字。如果无法确定某个字段，请使用空字符串或默认值。`;
 
+          console.log('Sending AI request with API Key:', savedApiKey.substring(0, 10) + '...');
+          
           const res = await fetch('/api/ai/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
           });
           
+          console.log('AI response status:', res.status);
+          
           const result = await res.json();
+          console.log('AI result:', result);
           
           if (result.success) {
             try {
+              console.log('AI response content:', result.response);
               const customers = JSON.parse(result.response);
-              if (Array.isArray(customers)) {
+              console.log('Parsed customers:', customers);
+              if (Array.isArray(customers) && customers.length > 0) {
+                let importedCount = 0;
                 for (const c of customers) {
-                  await fetch('/api/customers', {
+                  console.log('Importing customer:', c);
+                  const customerData = {
+                    name: c.name || c.公司名 || '未知',
+                    company: c.company || c.公司 || '',
+                    country: c.country || c.国家 || '未知',
+                    address: c.address || c.地址 || '',
+                    type: c.type || c.客户类型 || '',
+                    level: c.level || c.客户等级 || '',
+                    email: c.email || c.邮箱 || '',
+                    phone: c.phone || c.电话 || '',
+                    upstreamDistributor: c.upstreamDistributor || c.上游分销商 || '',
+                    upstreamCountry: c.upstreamCountry || c.上游分销商国家 || '',
+                    customsSource: c.customsSource || c.海关数据来源 || '',
+                    website: c.website || c.网址 || '',
+                    socialMedia: c.socialMedia || c.社媒账号 || '',
+                    contactPerson: c.contactPerson || c.联系人 || '',
+                    contactInfo: c.contactInfo || c.联系方式 || '',
+                    mainProducts: c.mainProducts || c.主营产品 || '',
+                    purchaseCycle: c.purchaseCycle || c.采购周期 || '',
+                    annualPurchase: c.annualPurchase || c.年采购额 || '',
+                    sourceChannel: c.sourceChannel || c.来源渠道 || '',
+                    followUpStatus: c.followUpStatus || c.跟进情况 || '',
+                    lastFollowUp: c.lastFollowUp || c.最新跟进时间 || '',
+                    followUpContent: c.followUpContent || c.最新跟进内容 || '',
+                    status: 'potential',
+                    notes: c.notes || c.备注 || ''
+                  };
+                  const saveRes = await fetch('/api/customers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({
-                      name: c.name || c.公司名 || '未知',
-                      company: c.company || c.公司 || '',
-                      country: c.country || c.国家 || '未知',
-                      address: c.address || c.地址 || '',
-                      type: c.type || c.客户类型 || '',
-                      level: c.level || c.客户等级 || '',
-                      email: c.email || c.邮箱 || '',
-                      phone: c.phone || c.电话 || '',
-                      upstreamDistributor: c.upstreamDistributor || c.上游分销商 || '',
-                      upstreamCountry: c.upstreamCountry || c.上游分销商国家 || '',
-                      customsSource: c.customsSource || c.海关数据来源 || '',
-                      website: c.website || c.网址 || '',
-                      socialMedia: c.socialMedia || c.社媒账号 || '',
-                      contactPerson: c.contactPerson || c.联系人 || '',
-                      contactInfo: c.contactInfo || c.联系方式 || '',
-                      mainProducts: c.mainProducts || c.主营产品 || '',
-                      purchaseCycle: c.purchaseCycle || c.采购周期 || '',
-                      annualPurchase: c.annualPurchase || c.年采购额 || '',
-                      sourceChannel: c.sourceChannel || c.来源渠道 || '',
-                      followUpStatus: c.followUpStatus || c.跟进情况 || '',
-                      lastFollowUp: c.lastFollowUp || c.最新跟进时间 || '',
-                      followUpContent: c.followUpContent || c.最新跟进内容 || '',
-                      status: 'potential',
-                      notes: c.notes || c.备注 || ''
-                    })
+                    body: JSON.stringify(customerData)
                   });
+                  const saveResult = await saveRes.json();
+                  if (saveResult.success) importedCount++;
                 }
-                showToast('success', `成功导入${customers.length}个客户！`);
+                showToast('success', `成功导入${importedCount}个客户！`);
                 loadCustomers();
+              } else {
+                showToast('error', 'AI返回数据为空或格式不正确');
               }
             } catch (parseErr) {
-              showToast('error', 'AI返回数据格式有误，请检查Excel格式');
+              console.error('Parse error:', parseErr);
+              showToast('error', 'AI返回数据格式有误: ' + parseErr.message);
             }
           } else {
-            showToast('error', result.message);
+            console.error('AI request failed:', result);
+            showToast('error', result.message || 'AI请求失败');
           }
         } catch (err) {
           showToast('error', '文件解析失败: ' + err.message);
