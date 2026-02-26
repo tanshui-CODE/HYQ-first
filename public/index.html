@@ -957,15 +957,30 @@ Excel表头: ${JSON.stringify(headers)}
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({
-                      name: c.name || '未知',
-                      company: c.company || '',
-                      country: c.country || '未知',
-                      email: c.email || '',
-                      phone: c.phone || '',
-                      type: c.type || '',
-                      level: c.level || '',
-                      status: c.status || 'potential',
-                      notes: c.notes || ''
+                      name: c.name || c.公司名 || '未知',
+                      company: c.company || c.公司 || '',
+                      country: c.country || c.国家 || '未知',
+                      address: c.address || c.地址 || '',
+                      type: c.type || c.客户类型 || '',
+                      level: c.level || c.客户等级 || '',
+                      email: c.email || c.邮箱 || '',
+                      phone: c.phone || c.电话 || '',
+                      upstreamDistributor: c.upstreamDistributor || c.上游分销商 || '',
+                      upstreamCountry: c.upstreamCountry || c.上游分销商国家 || '',
+                      customsSource: c.customsSource || c.海关数据来源 || '',
+                      website: c.website || c.网址 || '',
+                      socialMedia: c.socialMedia || c.社媒账号 || '',
+                      contactPerson: c.contactPerson || c.联系人 || '',
+                      contactInfo: c.contactInfo || c.联系方式 || '',
+                      mainProducts: c.mainProducts || c.主营产品 || '',
+                      purchaseCycle: c.purchaseCycle || c.采购周期 || '',
+                      annualPurchase: c.annualPurchase || c.年采购额 || '',
+                      sourceChannel: c.sourceChannel || c.来源渠道 || '',
+                      followUpStatus: c.followUpStatus || c.跟进情况 || '',
+                      lastFollowUp: c.lastFollowUp || c.最新跟进时间 || '',
+                      followUpContent: c.followUpContent || c.最新跟进内容 || '',
+                      status: 'potential',
+                      notes: c.notes || c.备注 || ''
                     })
                   });
                 }
@@ -976,7 +991,7 @@ Excel表头: ${JSON.stringify(headers)}
               showToast('error', 'AI返回数据格式有误，请检查Excel格式');
             }
           } else {
-            showToast('error', data.message);
+            showToast('error', result.message);
           }
         } catch (err) {
           showToast('error', '文件解析失败: ' + err.message);
