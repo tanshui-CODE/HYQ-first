@@ -272,6 +272,9 @@
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">客户管理</h2>
             <div class="flex gap-2">
+              <button onclick="downloadTemplate()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                <i class="fas fa-download mr-2"></i>下载模板
+              </button>
               <button onclick="document.getElementById('excelImport').click()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                 <i class="fas fa-file-import mr-2"></i>AI智能导入
               </button>
@@ -902,6 +905,32 @@
       localStorage.setItem('deepseekApiKey', key);
       savedApiKey = key;
       showToast('success', 'API Key保存成功');
+    }
+
+    // 下载Excel模板
+    function downloadTemplate() {
+      const headers = [
+        '公司名', '国家', '地址', '客户类型', '客户等级',
+        '上游分销商', '上游分销商国家', '海关数据来源',
+        '网址', '社媒账号', '联系人', '联系方式',
+        '主营产品', '采购周期', '年采购额', '来源渠道',
+        '跟进情况', '最新跟进时间', '最新跟进内容', '备注'
+      ];
+      
+      const sampleData = [
+        ['ABC Company', '美国', 'New York', 'distributor', 'A', 'XYZ Supplier', '中国', '海关数据', 'https://abc.com', 'https://linkedin.com/abc', 'John Smith', 'john@abc.com', '板簧', '季度', '$500,000', '展会', '跟进中', '2024-01-15', '已发送报价', '重点客户'],
+        ['DEF GmbH', '德国', 'Berlin', 'manufacturer', 'B', '', '', '', 'https://def.de', '', 'Hans Mueller', '+49-123-456', '底盘', '月度', '$200,000', '网络', '潜在', '2024-01-10', '等待回复', '']
+      ];
+      
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '客户模板');
+      
+      // 设置列宽
+      ws['!cols'] = headers.map(() => ({ wch: 15 }));
+      
+      XLSX.writeFile(wb, '客户导入模板.xlsx');
+      showToast('success', '模板下载成功！');
     }
 
     async function importExcel(event) {
