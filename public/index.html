@@ -292,16 +292,29 @@
               </select>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full">
+              <table class="w-full text-sm">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-4 py-3 text-left text-gray-600">客户名称</th>
-                    <th class="px-4 py-3 text-left text-gray-600">公司</th>
-                    <th class="px-4 py-3 text-left text-gray-600">国家</th>
-                    <th class="px-4 py-3 text-left text-gray-600">类型</th>
-                    <th class="px-4 py-3 text-left text-gray-600">等级</th>
-                    <th class="px-4 py-3 text-left text-gray-600">状态</th>
-                    <th class="px-4 py-3 text-left text-gray-600">操作</th>
+                    <th class="px-2 py-2 text-left text-gray-600">公司名</th>
+                    <th class="px-2 py-2 text-left text-gray-600">国家</th>
+                    <th class="px-2 py-2 text-left text-gray-600">地址</th>
+                    <th class="px-2 py-2 text-left text-gray-600">客户类型</th>
+                    <th class="px-2 py-2 text-left text-gray-600">客户等级</th>
+                    <th class="px-2 py-2 text-left text-gray-600">上游分销商</th>
+                    <th class="px-2 py-2 text-left text-gray-600">上游分销商国家</th>
+                    <th class="px-2 py-2 text-left text-gray-600">海关数据来源</th>
+                    <th class="px-2 py-2 text-left text-gray-600">网址</th>
+                    <th class="px-2 py-2 text-left text-gray-600">社媒账号</th>
+                    <th class="px-2 py-2 text-left text-gray-600">联系人</th>
+                    <th class="px-2 py-2 text-left text-gray-600">联系方式</th>
+                    <th class="px-2 py-2 text-left text-gray-600">主营产品</th>
+                    <th class="px-2 py-2 text-left text-gray-600">采购周期</th>
+                    <th class="px-2 py-2 text-left text-gray-600">年采购额</th>
+                    <th class="px-2 py-2 text-left text-gray-600">来源渠道</th>
+                    <th class="px-2 py-2 text-left text-gray-600">跟进情况</th>
+                    <th class="px-2 py-2 text-left text-gray-600">最新跟进时间</th>
+                    <th class="px-2 py-2 text-left text-gray-600">最新跟进内容</th>
+                    <th class="px-2 py-2 text-left text-gray-600">操作</th>
                   </tr>
                 </thead>
                 <tbody id="customerList"></tbody>
@@ -493,8 +506,8 @@
     </div>
 
     <!-- 客户模态框 -->
-    <div id="customerModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 fade-in">
+    <div id="customerModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 overflow-y-auto">
+      <div class="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 my-8 fade-in">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-bold" id="customerModalTitle">添加客户</h3>
           <button onclick="closeCustomerModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
@@ -551,11 +564,67 @@
             </div>
             <div class="col-span-2">
               <label class="block text-gray-700 mb-1">地址</label>
-              <input type="text" id="customerAddress" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <input type="text" id="customerAddress" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">上游分销商</label>
+              <input type="text" id="customerUpstreamDistributor" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">上游分销商国家</label>
+              <input type="text" id="customerUpstreamCountry" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">海关数据来源</label>
+              <input type="text" id="customerCustomsSource" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">网址</label>
+              <input type="url" id="customerWebsite" placeholder="https://" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">社媒账号</label>
+              <input type="url" id="customerSocialMedia" placeholder="https://" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">联系人</label>
+              <input type="text" id="customerContactPerson" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">联系方式</label>
+              <input type="text" id="customerContactInfo" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">主营产品</label>
+              <input type="text" id="customerMainProducts" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">采购周期</label>
+              <input type="text" id="customerPurchaseCycle" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">年采购额</label>
+              <input type="text" id="customerAnnualPurchase" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">来源渠道</label>
+              <input type="text" id="customerSourceChannel" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">跟进情况</label>
+              <input type="text" id="customerFollowUpStatus" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">最新跟进时间</label>
+              <input type="date" id="customerLastFollowUp" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="block text-gray-700 mb-1">最新跟进内容</label>
+              <textarea id="customerFollowUpContent" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"></textarea>
             </div>
             <div class="col-span-2">
               <label class="block text-gray-700 mb-1">备注</label>
-              <textarea id="customerNotes" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+              <textarea id="customerNotes" rows="2" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none"></textarea>
             </div>
           </div>
           <div class="flex justify-end gap-2 mt-4">
@@ -1158,18 +1227,31 @@ Excel表头: ${JSON.stringify(headers)}
           customersData = data.data;
           const html = data.data.map(c => `
             <tr class="border-b hover:bg-gray-50">
-              <td class="px-4 py-3">${c.name}</td>
-              <td class="px-4 py-3">${c.company || '-'}</td>
-              <td class="px-4 py-3">${c.country}</td>
-              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerTypeColor(c.type)}">${getCustomerTypeText(c.type)}</span></td>
-              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerLevelColor(c.level)}">${c.level || '-'}</span></td>
-              <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs ${getCustomerStatusColor(c.status)}">${getCustomerStatusText(c.status)}</span></td>
-              <td class="px-4 py-3">
-                <button onclick="editCustomer('${c.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+              <td class="px-2 py-2 whitespace-nowrap">${c.company || c.name}</td>
+              <td class="px-2 py-2">${c.country || '-'}</td>
+              <td class="px-2 py-2">${c.address || '-'}</td>
+              <td class="px-2 py-2"><span class="px-2 py-1 rounded text-xs ${getCustomerTypeColor(c.type)}">${getCustomerTypeText(c.type)}</span></td>
+              <td class="px-2 py-2"><span class="px-2 py-1 rounded text-xs ${getCustomerLevelColor(c.level)}">${c.level || '-'}</span></td>
+              <td class="px-2 py-2">${c.upstreamDistributor || '-'}</td>
+              <td class="px-2 py-2">${c.upstreamCountry || '-'}</td>
+              <td class="px-2 py-2">${c.customsSource || '-'}</td>
+              <td class="px-2 py-2">${c.website ? '<a href="'+c.website+'" target="_blank" class="text-blue-600 hover:underline">链接</a>' : '-'}</td>
+              <td class="px-2 py-2">${c.socialMedia ? '<a href="'+c.socialMedia+'" target="_blank" class="text-blue-600 hover:underline">链接</a>' : '-'}</td>
+              <td class="px-2 py-2">${c.contactPerson || '-'}</td>
+              <td class="px-2 py-2">${c.contactInfo || c.phone || '-'}</td>
+              <td class="px-2 py-2">${c.mainProducts || '-'}</td>
+              <td class="px-2 py-2">${c.purchaseCycle || '-'}</td>
+              <td class="px-2 py-2">${c.annualPurchase || '-'}</td>
+              <td class="px-2 py-2">${c.sourceChannel || '-'}</td>
+              <td class="px-2 py-2">${c.followUpStatus || '-'}</td>
+              <td class="px-2 py-2">${c.lastFollowUp || '-'}</td>
+              <td class="px-2 py-2">${c.followUpContent || '-'}</td>
+              <td class="px-2 py-2">
+                <button onclick="editCustomer('${c.id}')" class="text-orange-600 hover:text-orange-800 mr-1"><i class="fas fa-edit"></i></button>
                 <button onclick="deleteCustomer('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
               </td>
             </tr>
-          `).join('') || '<tr><td colspan="7" class="text-center py-4 text-gray-500">暂无客户数据</td></tr>';
+          `).join('') || '<tr><td colspan="20" class="text-center py-4 text-gray-500">暂无客户数据</td></tr>';
           document.getElementById('customerList').innerHTML = html;
         }
       } catch (e) {
@@ -1345,6 +1427,20 @@ Excel表头: ${JSON.stringify(headers)}
           document.getElementById('customerEmail').value = c.email || '';
           document.getElementById('customerPhone').value = c.phone || '';
           document.getElementById('customerAddress').value = c.address || '';
+          document.getElementById('customerUpstreamDistributor').value = c.upstreamDistributor || '';
+          document.getElementById('customerUpstreamCountry').value = c.upstreamCountry || '';
+          document.getElementById('customerCustomsSource').value = c.customsSource || '';
+          document.getElementById('customerWebsite').value = c.website || '';
+          document.getElementById('customerSocialMedia').value = c.socialMedia || '';
+          document.getElementById('customerContactPerson').value = c.contactPerson || '';
+          document.getElementById('customerContactInfo').value = c.contactInfo || '';
+          document.getElementById('customerMainProducts').value = c.mainProducts || '';
+          document.getElementById('customerPurchaseCycle').value = c.purchaseCycle || '';
+          document.getElementById('customerAnnualPurchase').value = c.annualPurchase || '';
+          document.getElementById('customerSourceChannel').value = c.sourceChannel || '';
+          document.getElementById('customerFollowUpStatus').value = c.followUpStatus || '';
+          document.getElementById('customerLastFollowUp').value = c.lastFollowUp || '';
+          document.getElementById('customerFollowUpContent').value = c.followUpContent || '';
           document.getElementById('customerNotes').value = c.notes || '';
         }
       } else {
@@ -1357,6 +1453,20 @@ Excel表头: ${JSON.stringify(headers)}
         document.getElementById('customerEmail').value = '';
         document.getElementById('customerPhone').value = '';
         document.getElementById('customerAddress').value = '';
+        document.getElementById('customerUpstreamDistributor').value = '';
+        document.getElementById('customerUpstreamCountry').value = '';
+        document.getElementById('customerCustomsSource').value = '';
+        document.getElementById('customerWebsite').value = '';
+        document.getElementById('customerSocialMedia').value = '';
+        document.getElementById('customerContactPerson').value = '';
+        document.getElementById('customerContactInfo').value = '';
+        document.getElementById('customerMainProducts').value = '';
+        document.getElementById('customerPurchaseCycle').value = '';
+        document.getElementById('customerAnnualPurchase').value = '';
+        document.getElementById('customerSourceChannel').value = '';
+        document.getElementById('customerFollowUpStatus').value = '';
+        document.getElementById('customerLastFollowUp').value = '';
+        document.getElementById('customerFollowUpContent').value = '';
         document.getElementById('customerNotes').value = '';
       }
     }
@@ -1375,6 +1485,20 @@ Excel表头: ${JSON.stringify(headers)}
         email: document.getElementById('customerEmail').value,
         phone: document.getElementById('customerPhone').value,
         address: document.getElementById('customerAddress').value,
+        upstreamDistributor: document.getElementById('customerUpstreamDistributor').value,
+        upstreamCountry: document.getElementById('customerUpstreamCountry').value,
+        customsSource: document.getElementById('customerCustomsSource').value,
+        website: document.getElementById('customerWebsite').value,
+        socialMedia: document.getElementById('customerSocialMedia').value,
+        contactPerson: document.getElementById('customerContactPerson').value,
+        contactInfo: document.getElementById('customerContactInfo').value,
+        mainProducts: document.getElementById('customerMainProducts').value,
+        purchaseCycle: document.getElementById('customerPurchaseCycle').value,
+        annualPurchase: document.getElementById('customerAnnualPurchase').value,
+        sourceChannel: document.getElementById('customerSourceChannel').value,
+        followUpStatus: document.getElementById('customerFollowUpStatus').value,
+        lastFollowUp: document.getElementById('customerLastFollowUp').value,
+        followUpContent: document.getElementById('customerFollowUpContent').value,
         notes: document.getElementById('customerNotes').value
       };
       try {
