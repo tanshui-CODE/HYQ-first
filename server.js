@@ -314,7 +314,7 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 function callKimiAPI(messages, apiKey, tools = null) {
   return new Promise((resolve, reject) => {
     const requestBodyObj = {
-      model: 'moonshot-v1-8k',
+      model: 'moonshot-v1-32k',
       messages: messages,
       max_tokens: 2000,
       temperature: 0.7
