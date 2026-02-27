@@ -1089,27 +1089,14 @@ Excel表头: ${JSON.stringify(headers)}
       `;
       chatMessages.scrollTop = chatMessages.scrollHeight;
 
-      const prompt = `请帮我分析这家公司："${query}"。
-
-请提供以下信息（如果可能）：
-1. 公司基本信息（成立时间、规模、主营业务）
-2. 产品类型和特点
-3. 目标市场和客户群体
-4. 可能的采购需求分析
-5. 联系方式（如果有）
-6. 与四川华玉车辆板簧有限公司的业务匹配度分析
-7. 开发建议
-
-请用中文回答，格式清晰。`;
-
       try {
-        const res = await fetch('/api/ai/chat', {
+        const res = await fetch('/api/ai/web-search', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
+          body: JSON.stringify({ query: query, apiKey: savedApiKey })
         });
 
         const data = await res.json();

@@ -400,6 +400,46 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
   }
 });
 
+// 联网搜索公司信息
+app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
+  const { query, apiKey } = req.body;
+  
+  if (!apiKey) {
+    return res.status(400).json({ success: false, message: '请提供API Key' });
+  }
+  
+  if (!query) {
+    return res.status(400).json({ success: false, message: '请输入搜索内容' });
+  }
+
+  const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，专门帮助分析潜在客户。
+
+请基于你的知识库，提供关于"${query}"的详细信息：
+
+1. 公司基本信息（成立时间、规模、主营业务、总部位置）
+2. 产品类型和特点（特别关注是否与车辆、卡车、板簧相关）
+3. 目标市场和客户群体
+4. 可能的采购需求分析（为什么可能需要板簧产品）
+5. 联系方式（如果有公开信息）
+6. 与四川华玉车辆板簧有限公司的业务匹配度分析
+7. 开发建议（如何接触、什么产品适合、谈判策略）
+
+请用中文回答，格式清晰，使用Markdown格式。如果信息不确定，请说明。`;
+
+  try {
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `请详细分析这家公司：${query}` }
+    ];
+    
+    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+    res.json({ success: true, response: aiResponse });
+  } catch (error) {
+    console.error('Web Search API Error:', error.message);
+    res.status(500).json({ success: false, message: '联网分析失败: ' + error.message });
+  }
+});
+
 app.post('/api/ai/analyze-customer/:id', authMiddleware, async (req, res) => {
   const { apiKey } = req.body;
   const customerId = req.params.id;
