@@ -369,16 +369,23 @@ async function callKimiWithWebSearch(messages, apiKey) {
     function: { name: '$web_search' }
   }];
   
-  console.log('Sending web search request to Kimi...');
+  console.log('=== Kimi Web Search Request ===');
+  console.log('Messages:', JSON.stringify(messages, null, 2));
+  console.log('Tools:', JSON.stringify(tools, null, 2));
+  
   const firstResponse = await callKimiAPI(messages, apiKey, tools);
-  console.log('First response finish_reason:', firstResponse.choices[0].finish_reason);
-  console.log('First response content:', firstResponse.choices[0].message.content);
+  
+  console.log('=== Kimi First Response ===');
+  console.log('Full response:', JSON.stringify(firstResponse, null, 2));
+  console.log('finish_reason:', firstResponse.choices[0].finish_reason);
   
   // 判断是否需要搜索
   if (firstResponse.choices[0].finish_reason === 'tool_calls') {
-    console.log('Tool calls detected, processing search...');
+    console.log('=== Tool calls detected! ===');
     const toolCall = firstResponse.choices[0].message.tool_calls[0];
-    console.log('Tool call:', JSON.stringify(toolCall));
+    console.log('Tool call ID:', toolCall.id);
+    console.log('Tool call function:', toolCall.function.name);
+    console.log('Tool call arguments:', toolCall.function.arguments);
     
     // 第2次请求：把搜索结果返回给Kimi总结
     const secondMessages = [
@@ -392,13 +399,14 @@ async function callKimiWithWebSearch(messages, apiKey) {
       }
     ];
     
+    console.log('=== Sending second request ===');
     const finalResponse = await callKimiAPI(secondMessages, apiKey);
-    console.log('Final response received');
+    console.log('=== Final response received ===');
     return finalResponse.choices[0].message.content;
   }
   
   // 如果Kimi觉得不需要搜索，直接返回答案
-  console.log('No tool calls, returning direct response');
+  console.log('=== No tool calls, direct response ===');
   return firstResponse.choices[0].message.content;
 }
 
