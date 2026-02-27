@@ -10,8 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'huayu-crm-secret-key-2024';
 const DATA_DIR = path.join(__dirname, 'data');
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
-const DEEPSEEK_API_URL = 'api.deepseek.com';
+const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
+const KIMI_API_URL = 'api.moonshot.cn';
 
 app.use(cors());
 app.use(express.json());
@@ -310,17 +310,27 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 
 // ==================== AI分析功能 ====================
 
-function callDeepSeekAPI(messages, apiKey) {
+function callKimiAPI(messages, apiKey, enableWebSearch = false) {
   return new Promise((resolve, reject) => {
-    const requestBody = JSON.stringify({
-      model: 'deepseek-chat',
+    const requestBodyObj = {
+      model: 'moonshot-v1-8k',
       messages: messages,
       max_tokens: 2000,
       temperature: 0.7
-    });
+    };
+    
+    // 如果需要联网搜索，添加builtin_function工具
+    if (enableWebSearch) {
+      requestBodyObj.tools = [{
+        type: 'builtin_function',
+        function: { name: '$web_search' }
+      }];
+    }
+    
+    const requestBody = JSON.stringify(requestBodyObj);
 
     const options = {
-      hostname: DEEPSEEK_API_URL,
+      hostname: KIMI_API_URL,
       port: 443,
       path: '/v1/chat/completions',
       method: 'POST',
@@ -392,7 +402,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
       { role: 'user', content: message }
     ];
     
-    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+    const aiResponse = await callKimiAPI(messages, apiKey);
     res.json({ success: true, response: aiResponse });
   } catch (error) {
     console.error('AI API Error:', error.message);
@@ -403,7 +413,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 // 联网搜索公司信息
 app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
   const { query, apiKey } = req.body;
-  
+
   if (!apiKey) {
     return res.status(400).json({ success: false, message: '请提供API Key' });
   }
@@ -431,8 +441,8 @@ app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: `请详细分析这家公司：${query}` }
     ];
-    
-    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+
+    const aiResponse = await callKimiAPI(messages, apiKey, true);
     res.json({ success: true, response: aiResponse });
   } catch (error) {
     console.error('Web Search API Error:', error.message);
@@ -473,8 +483,8 @@ app.post('/api/ai/analyze-customer/:id', authMiddleware, async (req, res) => {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: '请分析这个客户' }
     ];
-    
-    const aiResponse = await callDeepSeekAPI(messages, apiKey);
+
+    const aiResponse = await callKimiAPI(messages, apiKey);
     res.json({ success: true, response: aiResponse });
   } catch (error) {
     res.status(500).json({ success: false, message: 'AI分析失败: ' + error.message });

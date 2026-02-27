@@ -426,7 +426,7 @@
                   </div>
                   <div>
                     <h3 class="font-semibold">华玉AI助手</h3>
-                    <p class="text-sm text-gray-500">基于DeepSeek大模型</p>
+                    <p class="text-sm text-gray-500">基于Kimi大模型（支持联网搜索）</p>
                   </div>
                 </div>
                 
@@ -459,8 +459,8 @@
                 <h3 class="font-semibold mb-4"><i class="fas fa-key mr-2 text-blue-500"></i>API设置</h3>
                 <div class="space-y-3">
                   <div>
-                    <label class="block text-sm text-gray-600 mb-1">DeepSeek API Key</label>
-                    <input type="password" id="deepseekApiKey" placeholder="sk-xxxxxxxxxxxxxxxx" 
+                    <label class="block text-sm text-gray-600 mb-1">Kimi API Key</label>
+                    <input type="password" id="kimiApiKey" placeholder="sk-xxxxxxxxxxxxxxxx"
                       class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                   </div>
                   <button onclick="saveApiKey()" class="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm">
@@ -891,22 +891,31 @@
     let savedApiKey = '';
 
     function loadApiKey() {
-      const key = localStorage.getItem('deepseekApiKey');
+      // 兼容旧版本，先尝试读取kimiApiKey，如果没有则尝试读取deepseekApiKey
+      let key = localStorage.getItem('kimiApiKey');
+      if (!key) {
+        key = localStorage.getItem('deepseekApiKey');
+        if (key) {
+          // 迁移旧数据
+          localStorage.setItem('kimiApiKey', key);
+          localStorage.removeItem('deepseekApiKey');
+        }
+      }
       if (key) {
         savedApiKey = key;
-        document.getElementById('deepseekApiKey').value = key;
+        document.getElementById('kimiApiKey').value = key;
       }
     }
 
     function saveApiKey() {
-      const key = document.getElementById('deepseekApiKey').value.trim();
+      const key = document.getElementById('kimiApiKey').value.trim();
       if (!key) {
         showToast('error', '请输入API Key');
         return;
       }
-      localStorage.setItem('deepseekApiKey', key);
+      localStorage.setItem('kimiApiKey', key);
       savedApiKey = key;
-      showToast('success', 'API Key保存成功');
+      showToast('success', 'Kimi API Key保存成功');
     }
 
     // 下载Excel模板
