@@ -490,13 +490,42 @@
                 </div>
               </div>
               
+              <div class="bg-white rounded-xl p-6">
+                <h3 class="font-semibold mb-4"><i class="fas fa-globe mr-2 text-green-500"></i>联网分析</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-sm text-gray-600 mb-1">输入公司名或网址</label>
+                    <input type="text" id="webSearchQuery" placeholder="例如：ABC Company 或 https://abc.com" 
+                      class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                  </div>
+                  <button onclick="analyzeCompanyOnline()" class="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm">
+                    <i class="fas fa-search mr-1"></i>联网分析公司
+                  </button>
+                </div>
+              </div>
+
+              <div class="bg-white rounded-xl p-6">
+                <h3 class="font-semibold mb-4"><i class="fas fa-file-import mr-2 text-purple-500"></i>模板导入</h3>
+                <div class="space-y-3">
+                  <p class="text-sm text-gray-600">下载模板，填写后导入客户数据</p>
+                  <button onclick="downloadTemplate()" class="w-full py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition text-sm">
+                    <i class="fas fa-download mr-1"></i>下载Excel模板
+                  </button>
+                  <button onclick="document.getElementById('aiExcelImport').click()" class="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm">
+                    <i class="fas fa-upload mr-1"></i>导入客户数据
+                  </button>
+                  <input type="file" id="aiExcelImport" accept=".xlsx,.xls,.csv" class="hidden" onchange="importExcelFromAI(event)">
+                </div>
+              </div>
+
               <div class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-6 text-white">
                 <h3 class="font-semibold mb-2"><i class="fas fa-info-circle mr-2"></i>AI能力说明</h3>
                 <ul class="text-sm space-y-1 text-blue-100">
                   <li>• 分析客户数据和画像</li>
+                  <li>• 联网搜索公司信息</li>
+                  <li>• 智能导入Excel数据</li>
                   <li>• 预测销售趋势</li>
                   <li>• 提供业务建议</li>
-                  <li>• 解答产品问题</li>
                 </ul>
               </div>
             </div>
@@ -1019,6 +1048,216 @@ Excel表头: ${JSON.stringify(headers)}
     function quickAsk(question) {
       document.getElementById('aiInput').value = question;
       sendAIMessage();
+    }
+
+    // 联网分析公司
+    async function analyzeCompanyOnline() {
+      const query = document.getElementById('webSearchQuery').value.trim();
+      if (!query) {
+        showToast('error', '请输入公司名或网址');
+        return;
+      }
+      
+      if (!savedApiKey) {
+        showToast('error', '请先保存API Key');
+        return;
+      }
+
+      const chatMessages = document.getElementById('aiChatMessages');
+      
+      chatMessages.innerHTML += `
+        <div class="flex gap-3 justify-end">
+          <div class="bg-green-500 text-white rounded-lg p-3 max-w-[80%]">
+            <p>🔍 联网分析：${query}</p>
+          </div>
+          <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-user text-gray-600 text-sm"></i>
+          </div>
+        </div>
+      `;
+
+      const loadingId = 'loading-web-' + Date.now();
+      chatMessages.innerHTML += `
+        <div id="${loadingId}" class="flex gap-3">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-globe text-white text-sm"></i>
+          </div>
+          <div class="bg-gray-100 rounded-lg p-3">
+            <p class="text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>正在联网搜索分析...</p>
+          </div>
+        </div>
+      `;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const prompt = `请帮我分析这家公司："${query}"。
+
+请提供以下信息（如果可能）：
+1. 公司基本信息（成立时间、规模、主营业务）
+2. 产品类型和特点
+3. 目标市场和客户群体
+4. 可能的采购需求分析
+5. 联系方式（如果有）
+6. 与四川华玉车辆板簧有限公司的业务匹配度分析
+7. 开发建议
+
+请用中文回答，格式清晰。`;
+
+      try {
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
+        });
+
+        const data = await res.json();
+        document.getElementById(loadingId).remove();
+
+        if (data.success) {
+          const formattedResponse = data.response.replace(/\n/g, '<br>');
+          chatMessages.innerHTML += `
+            <div class="flex gap-3">
+              <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-globe text-white text-sm"></i>
+              </div>
+              <div class="bg-green-50 rounded-lg p-3 max-w-[80%]">
+                <p class="text-gray-700 whitespace-pre-wrap">${formattedResponse}</p>
+                <div class="mt-3 pt-2 border-t border-green-200">
+                  <button onclick="addCompanyToCRM('${query.replace(/'/g, "\\'")}')" class="text-sm bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+                    <i class="fas fa-plus mr-1"></i>添加到客户管理
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          chatMessages.innerHTML += `
+            <div class="flex gap-3">
+              <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-exclamation text-white text-sm"></i>
+              </div>
+              <div class="bg-red-50 rounded-lg p-3">
+                <p class="text-red-600">${data.message}</p>
+              </div>
+            </div>
+          `;
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } catch (e) {
+        document.getElementById(loadingId).remove();
+        showToast('error', '联网分析失败: ' + e.message);
+      }
+    }
+
+    // 从AI页面导入Excel
+    async function importExcelFromAI(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      if (!savedApiKey) {
+        showToast('error', '请先在AI助手页面保存API Key');
+        return;
+      }
+
+      showToast('info', '正在解析Excel文件...');
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const fileData = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(fileData, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          if (jsonData.length < 2) {
+            showToast('error', 'Excel文件内容为空');
+            return;
+          }
+          
+          const headers = jsonData[0];
+          const rows = jsonData.slice(1).filter(row => row.some(cell => cell));
+          
+          showToast('info', `解析完成，共${rows.length}条数据，正在AI智能分析...`);
+          
+          const prompt = `请分析以下Excel表格数据，提取客户信息。我需要你返回一个JSON数组，每个元素包含以下字段：
+company(公司名), country(国家), address(地址), type(客户类型:distributor/chassis/manufacturer/other), level(客户等级:A/B/C),
+website(网址), socialMedia(公司社媒账号), contactPerson(所有联系人), contactInfo(联系方式),
+mainProducts(主营产品), purchaseCycle(采购周期), annualPurchase(年采购额), sourceChannel(来源渠道),
+followUpStatus(跟进情况), lastFollowUp(最新跟进时间), followUpContent(最新跟进内容)。
+
+Excel表头: ${JSON.stringify(headers)}
+数据行: ${JSON.stringify(rows.slice(0, 20))}
+
+请只返回JSON数组，不要其他文字。如果无法确定某个字段，请使用空字符串或默认值。`;
+
+          const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ message: prompt, apiKey: savedApiKey })
+          });
+          
+          const result = await res.json();
+          
+          if (result.success) {
+            try {
+              const customers = JSON.parse(result.response);
+              if (Array.isArray(customers) && customers.length > 0) {
+                let importedCount = 0;
+                for (const c of customers) {
+                  const customerData = {
+                    name: c.company || c.公司名 || '未知',
+                    company: c.company || c.公司名 || '',
+                    country: c.country || c.国家 || '未知',
+                    address: c.address || c.地址 || '',
+                    type: c.type || c.客户类型 || '',
+                    level: c.level || c.客户等级 || '',
+                    website: c.website || c.网址 || '',
+                    socialMedia: c.socialMedia || c.公司社媒账号 || c.社媒账号 || '',
+                    contactPerson: c.contactPerson || c.所有联系人 || c.联系人 || '',
+                    contactInfo: c.contactInfo || c.联系方式 || '',
+                    mainProducts: c.mainProducts || c.主营产品 || '',
+                    purchaseCycle: c.purchaseCycle || c.采购周期 || '',
+                    annualPurchase: c.annualPurchase || c.年采购额 || '',
+                    sourceChannel: c.sourceChannel || c.来源渠道 || '',
+                    followUpStatus: c.followUpStatus || c.跟进情况 || '',
+                    lastFollowUp: c.lastFollowUp || c.最新跟进时间 || '',
+                    followUpContent: c.followUpContent || c.最新跟进内容 || '',
+                    status: 'potential'
+                  };
+                  const saveRes = await fetch('/api/customers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(customerData)
+                  });
+                  const saveResult = await saveRes.json();
+                  if (saveResult.success) importedCount++;
+                }
+                showToast('success', `成功导入${importedCount}个客户！`);
+              } else {
+                showToast('error', 'AI返回数据为空或格式不正确');
+              }
+            } catch (parseErr) {
+              showToast('error', 'AI返回数据格式有误: ' + parseErr.message);
+            }
+          } else {
+            showToast('error', result.message || 'AI请求失败');
+          }
+        } catch (err) {
+          showToast('error', '文件解析失败: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    // 添加公司到CRM
+    async function addCompanyToCRM(companyName) {
+      showCustomerModal();
+      document.getElementById('customerName').value = companyName;
+      document.getElementById('customerCompany').value = companyName;
+      showToast('info', '已打开添加客户窗口，请补充其他信息');
     }
 
     async function sendAIMessage() {
