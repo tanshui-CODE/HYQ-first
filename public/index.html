@@ -436,7 +436,12 @@
                       <i class="fas fa-robot text-white text-sm"></i>
                     </div>
                     <div class="bg-gray-100 rounded-lg p-3 max-w-[80%]">
-                      <p class="text-gray-700">您好！我是华玉AI助手，可以帮您分析客户数据、订单情况和业务趋势。请问有什么可以帮您的？</p>
+                      <p class="text-gray-700">您好！我是华玉AI助手，具备以下能力：</p>
+                      <ul class="text-gray-700 mt-2 space-y-1 text-sm">
+                        <li>📊 <strong>数据库分析</strong>：分析客户、订单、询盘、产品数据</li>
+                        <li>🌐 <strong>联网搜索</strong>：搜索公司信息、市场动态、行业新闻</li>
+                      </ul>
+                      <p class="text-gray-700 mt-2">请问有什么可以帮您的？</p>
                     </div>
                   </div>
                 </div>
@@ -478,14 +483,14 @@
                   <button onclick="quickAsk('哪些客户最近没有跟进')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
                     🔍 查找需要跟进的客户
                   </button>
+                  <button onclick="quickAsk('联网搜索Volvo公司的背景和采购需求')" class="w-full text-left px-3 py-2 bg-green-50 rounded-lg hover:bg-green-100 transition text-sm">
+                    🌐 联网搜索公司信息
+                  </button>
                   <button onclick="quickAsk('分析订单趋势和销售额')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
                     📈 分析订单趋势
                   </button>
-                  <button onclick="quickAsk('给我一些客户开发建议')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
-                    💡 客户开发建议
-                  </button>
-                  <button onclick="quickAsk('分析询盘转化率')" class="w-full text-left px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
-                    📋 分析询盘转化率
+                  <button onclick="quickAsk('联网搜索板簧行业的最新市场动态')" class="w-full text-left px-3 py-2 bg-green-50 rounded-lg hover:bg-green-100 transition text-sm">
+                    🌐 搜索行业市场动态
                   </button>
                 </div>
               </div>

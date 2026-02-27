@@ -421,7 +421,10 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false, message: '请输入问题' });
   }
 
-  const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，专门帮助分析客户数据和业务情况。
+  const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，具备以下能力：
+
+1. **数据库分析**：可以分析公司内部的客户、订单、询盘、产品数据
+2. **联网搜索**：可以联网搜索公司信息、市场动态、行业新闻等
 
 当前数据库信息：
 - 客户总数：${customers.length}
@@ -440,7 +443,11 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 客户类型说明：distributor=分销商, chassis=底盘商, manufacturer=制造商
 客户等级说明：A级=核心客户, B级=重要客户, C级=普通客户
 
-请用中文回答用户问题，提供专业的业务分析和建议。如果用户问的是数据分析，请给出具体的数字和洞察。`;
+回答规则：
+- 如果用户问的是数据库相关的问题（客户、订单、询盘、产品），请基于数据库数据回答
+- 如果用户问的是外部信息（公司背景、市场动态、行业新闻），请联网搜索后回答
+- 如果用户要求分析某个潜在客户，请联网搜索该公司信息，并结合公司产品给出开发建议
+- 请用中文回答，提供专业的业务分析和建议`;
 
   try {
     const messages = [
@@ -448,8 +455,16 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
       { role: 'user', content: message }
     ];
 
-    const response = await callKimiAPI(messages, apiKey);
-    res.json({ success: true, response: response.choices[0].message.content });
+    // 使用带联网搜索的API调用
+    let aiResponse;
+    try {
+      aiResponse = await callKimiWithWebSearch(messages, apiKey);
+    } catch (webError) {
+      console.log('Web search failed, falling back to normal AI:', webError.message);
+      const response = await callKimiAPI(messages, apiKey);
+      aiResponse = response.choices[0].message.content;
+    }
+    res.json({ success: true, response: aiResponse });
   } catch (error) {
     console.error('AI API Error:', error.message);
     res.status(500).json({ success: false, message: 'AI请求失败: ' + error.message });
