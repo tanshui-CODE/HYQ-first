@@ -310,21 +310,18 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 
 // ==================== AI分析功能 ====================
 
-function callKimiAPI(messages, apiKey, enableWebSearch = false) {
+// 基础Kimi API调用
+function callKimiAPI(messages, apiKey, tools = null) {
   return new Promise((resolve, reject) => {
     const requestBodyObj = {
-      model: 'moonshot-v1-8k',
+      model: 'kimi-k2-turbo-preview',
       messages: messages,
       max_tokens: 2000,
       temperature: 0.7
     };
     
-    // 如果需要联网搜索，添加builtin_function工具
-    if (enableWebSearch) {
-      requestBodyObj.tools = [{
-        type: 'builtin_function',
-        function: { name: '$web_search' }
-      }];
+    if (tools) {
+      requestBodyObj.tools = tools;
     }
     
     const requestBody = JSON.stringify(requestBodyObj);
@@ -350,10 +347,10 @@ function callKimiAPI(messages, apiKey, enableWebSearch = false) {
           if (parsed.error) {
             reject(new Error(parsed.error.message || 'API Error'));
           } else {
-            resolve(parsed.choices[0].message.content);
+            resolve(parsed);
           }
         } catch (e) {
-          reject(new Error('解析响应失败'));
+          reject(new Error('解析响应失败: ' + e.message));
         }
       });
     });
@@ -362,6 +359,40 @@ function callKimiAPI(messages, apiKey, enableWebSearch = false) {
     req.write(requestBody);
     req.end();
   });
+}
+
+// 带联网搜索的Kimi API调用
+async function callKimiWithWebSearch(messages, apiKey) {
+  // 第1次请求：告诉Kimi可以使用搜索工具
+  const tools = [{
+    type: 'builtin_function',
+    function: { name: '$web_search' }
+  }];
+  
+  const firstResponse = await callKimiAPI(messages, apiKey, tools);
+  
+  // 判断是否需要搜索
+  if (firstResponse.choices[0].finish_reason === 'tool_calls') {
+    const toolCall = firstResponse.choices[0].message.tool_calls[0];
+    
+    // 第2次请求：把搜索结果返回给Kimi总结
+    const secondMessages = [
+      ...messages,
+      firstResponse.choices[0].message,
+      {
+        role: 'tool',
+        tool_call_id: toolCall.id,
+        name: '$web_search',
+        content: toolCall.function.arguments
+      }
+    ];
+    
+    const finalResponse = await callKimiAPI(secondMessages, apiKey);
+    return finalResponse.choices[0].message.content;
+  }
+  
+  // 如果Kimi觉得不需要搜索，直接返回答案
+  return firstResponse.choices[0].message.content;
 }
 
 app.post('/api/ai/chat', authMiddleware, async (req, res) => {
@@ -401,9 +432,9 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: message }
     ];
-    
-    const aiResponse = await callKimiAPI(messages, apiKey);
-    res.json({ success: true, response: aiResponse });
+
+    const response = await callKimiAPI(messages, apiKey);
+    res.json({ success: true, response: response.choices[0].message.content });
   } catch (error) {
     console.error('AI API Error:', error.message);
     res.status(500).json({ success: false, message: 'AI请求失败: ' + error.message });
@@ -442,7 +473,7 @@ app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
       { role: 'user', content: `请详细分析这家公司：${query}` }
     ];
 
-    const aiResponse = await callKimiAPI(messages, apiKey, true);
+    const aiResponse = await callKimiWithWebSearch(messages, apiKey);
     res.json({ success: true, response: aiResponse });
   } catch (error) {
     console.error('Web Search API Error:', error.message);
@@ -484,8 +515,8 @@ app.post('/api/ai/analyze-customer/:id', authMiddleware, async (req, res) => {
       { role: 'user', content: '请分析这个客户' }
     ];
 
-    const aiResponse = await callKimiAPI(messages, apiKey);
-    res.json({ success: true, response: aiResponse });
+    const response = await callKimiAPI(messages, apiKey);
+    res.json({ success: true, response: response.choices[0].message.content });
   } catch (error) {
     res.status(500).json({ success: false, message: 'AI分析失败: ' + error.message });
   }
