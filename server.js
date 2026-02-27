@@ -462,7 +462,9 @@ app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
 
   const systemPrompt = `你是四川华玉车辆板簧有限公司的AI助手，专门帮助分析潜在客户。
 
-请基于你的知识库，提供关于"${query}"的详细信息：
+重要提示：请尽你所能提供关于"${query}"的详细信息。如果可以访问互联网，请搜索最新信息；如果不能访问，请基于你的训练数据提供信息。
+
+请提供以下信息：
 
 1. 公司基本信息（成立时间、规模、主营业务、总部位置）
 2. 产品类型和特点（特别关注是否与车辆、卡车、板簧相关）
@@ -472,7 +474,7 @@ app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
 6. 与四川华玉车辆板簧有限公司的业务匹配度分析
 7. 开发建议（如何接触、什么产品适合、谈判策略）
 
-请用中文回答，格式清晰，使用Markdown格式。如果信息不确定，请说明。`;
+请用中文回答，格式清晰，使用Markdown格式。如果某些信息不确定或无法获取，请明确说明。`;
 
   try {
     const messages = [
@@ -480,11 +482,20 @@ app.post('/api/ai/web-search', authMiddleware, async (req, res) => {
       { role: 'user', content: `请详细分析这家公司：${query}` }
     ];
 
-    const aiResponse = await callKimiWithWebSearch(messages, apiKey);
+    let aiResponse;
+    try {
+      // 尝试使用联网搜索
+      aiResponse = await callKimiWithWebSearch(messages, apiKey);
+    } catch (webError) {
+      console.log('Web search failed, falling back to normal AI:', webError.message);
+      // 如果联网搜索失败，使用普通AI调用
+      const response = await callKimiAPI(messages, apiKey);
+      aiResponse = response.choices[0].message.content;
+    }
     res.json({ success: true, response: aiResponse });
   } catch (error) {
     console.error('Web Search API Error:', error.message);
-    res.status(500).json({ success: false, message: '联网分析失败: ' + error.message });
+    res.status(500).json({ success: false, message: '分析失败: ' + error.message });
   }
 });
 
