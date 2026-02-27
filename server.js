@@ -369,11 +369,16 @@ async function callKimiWithWebSearch(messages, apiKey) {
     function: { name: '$web_search' }
   }];
   
+  console.log('Sending web search request to Kimi...');
   const firstResponse = await callKimiAPI(messages, apiKey, tools);
+  console.log('First response finish_reason:', firstResponse.choices[0].finish_reason);
+  console.log('First response content:', firstResponse.choices[0].message.content);
   
   // 判断是否需要搜索
   if (firstResponse.choices[0].finish_reason === 'tool_calls') {
+    console.log('Tool calls detected, processing search...');
     const toolCall = firstResponse.choices[0].message.tool_calls[0];
+    console.log('Tool call:', JSON.stringify(toolCall));
     
     // 第2次请求：把搜索结果返回给Kimi总结
     const secondMessages = [
@@ -388,10 +393,12 @@ async function callKimiWithWebSearch(messages, apiKey) {
     ];
     
     const finalResponse = await callKimiAPI(secondMessages, apiKey);
+    console.log('Final response received');
     return finalResponse.choices[0].message.content;
   }
   
   // 如果Kimi觉得不需要搜索，直接返回答案
+  console.log('No tool calls, returning direct response');
   return firstResponse.choices[0].message.content;
 }
 
